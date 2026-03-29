@@ -1,29 +1,30 @@
 # Clinic Appointment Management App
 
-This workspace is scaffolded for the **Appointment Management** module.
+A mobile and backend application for managing clinic appointments. The project includes appointment booking, rescheduling, cancellation, appointment history, and MongoDB data storage.
 
-## Your Member 2 Scope
-
-- Create appointment
-- View all appointments
-- View patient appointments
-- Update appointment date and time
-- Cancel appointment
-- Add mobile UI for appointment flows
-- Add routes, controllers, MongoDB integration, and testing
-
-## Suggested Stack
+## Tech Stack
 
 - Backend: Node.js, Express, MongoDB, Mongoose
-- Mobile UI: React Native with Expo
-- Testing: Jest and Supertest
+- Mobile: React Native with Expo
+- Testing: Jest
 
 ## Project Structure
 
-- `backend/` API for appointments
-- `mobile/` React Native appointment UI starter
+- `backend/` Express API and database logic
+- `mobile/` Expo mobile application
 
-## Quick Start
+## Features
+
+- Create a new appointment
+- View all appointments
+- View appointments by patient
+- Update appointment date and time
+- Cancel an appointment
+- Prevent double-booking for the same doctor and time slot
+- Store appointment data in MongoDB
+- Run backend tests for appointment logic
+
+## Getting Started
 
 ### 1. Install dependencies
 
@@ -31,36 +32,42 @@ This workspace is scaffolded for the **Appointment Management** module.
 npm install
 ```
 
-### 2. Configure backend environment
+### 2. Configure environment variables
 
-Copy `backend/.env.example` to `backend/.env` and update values.
+Copy the example file and update it if needed:
 
-### 3. Run backend
+```bash
+cp backend/.env.example backend/.env
+```
+
+### 3. Start MongoDB
+
+If MongoDB is installed with Homebrew:
+
+```bash
+brew services start mongodb-community
+```
+
+### 4. Run the backend
 
 ```bash
 npm run dev:backend
 ```
 
-### 4. Run mobile app
+### 5. Run the mobile app
 
 ```bash
 npm run dev:mobile
 ```
 
-## Important for Mobile Testing
+## Mobile Testing
 
-If you run the Expo app on a physical phone, `localhost` will not point to your laptop.
+If you test the Expo app on a physical phone, replace `localhost` in [mobile/src/services/appointmentApi.js](/Users/sandarunipuna/Documents/Projects/Clinic Appointment Management App/mobile/src/services/appointmentApi.js) with your computer's local IP address.
 
-Update [mobile/src/services/appointmentApi.js](/Users/sandarunipuna/Documents/Projects/Clinic Appointment Management App/mobile/src/services/appointmentApi.js) and replace:
-
-```js
-http://localhost:5000
-```
-
-with your computer's local IP address, for example:
+Example:
 
 ```js
-http://192.168.1.10:5000
+const API_BASE_URL = "http://192.168.1.10:5001/api/appointments";
 ```
 
 ## API Endpoints
@@ -73,24 +80,12 @@ http://192.168.1.10:5000
 - `PATCH /api/appointments/:id/cancel`
 - `DELETE /api/appointments/:id`
 
-## Implementation Roadmap
+## Running Tests
 
-1. Finish the appointment backend first.
-2. Connect mobile screens to the API.
-3. Add conflict checks with doctor schedule availability.
-4. Add tests and validation improvements.
+```bash
+npm run test:backend
+```
 
-## Demo Flow for Member 2
+## Database
 
-1. Create an appointment using patient ID and doctor ID.
-2. Show all appointments in the history list.
-3. Explain that duplicate doctor slots are blocked.
-4. Update an appointment time using `PATCH /api/appointments/:id`.
-5. Cancel an appointment using `PATCH /api/appointments/:id/cancel`.
-
-## Team Integration Notes
-
-- Member 1 provides doctor data.
-- Member 3 provides patient profile data.
-- Member 4 provides schedule and slot validation.
-- Member 5 can attach prescriptions and reports to appointments later.
+The application uses the `clinic_appointment_app` MongoDB database and stores appointment records in the `appointments` collection.
