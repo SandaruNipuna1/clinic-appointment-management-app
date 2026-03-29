@@ -1,0 +1,14 @@
+{
+  "name": "clinic-appointment-management-app",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "mobile"
+  ],
+  "scripts": {
+    "dev:backend": "npm --workspace backend run dev",
+    "dev:mobile": "npm --workspace mobile start",
+    "test:backend": "npm --workspace backend run test"
+  }
+}
