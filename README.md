@@ -34,11 +34,20 @@ npm install
 
 ### 2. Configure environment variables
 
-Copy the example file and update it if needed:
+Copy the example files and update them for your machine:
 
 ```bash
 cp backend/.env.example backend/.env
+cp mobile/.env.example mobile/.env
 ```
+
+Set `MONGODB_URI` in `backend/.env` if your local MongoDB URL differs from the default.
+
+Set `EXPO_PUBLIC_API_BASE_URL` in `mobile/.env` to the backend URL your device or simulator can reach.
+
+- iOS simulator: `http://localhost:5001/api/appointments`
+- Android emulator: `http://10.0.2.2:5001/api/appointments`
+- Physical phone: `http://YOUR_COMPUTER_LOCAL_IP:5001/api/appointments`
 
 ### 3. Start MongoDB
 
@@ -62,13 +71,7 @@ npm run dev:mobile
 
 ## Mobile Testing
 
-If you test the Expo app on a physical phone, replace `localhost` in [mobile/src/services/appointmentApi.js](/Users/sandarunipuna/Documents/Projects/Clinic Appointment Management App/mobile/src/services/appointmentApi.js) with your computer's local IP address.
-
-Example:
-
-```js
-const API_BASE_URL = "http://192.168.1.10:5001/api/appointments";
-```
+If you test the Expo app on a physical phone, make sure `EXPO_PUBLIC_API_BASE_URL` in [mobile/.env.example](/Users/sandarunipuna/Documents/Projects/Clinic Appointment Management App/mobile/.env.example) uses your computer's local IP address instead of `localhost`.
 
 ## API Endpoints
 
