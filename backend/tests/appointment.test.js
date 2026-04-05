@@ -110,6 +110,29 @@ describe("Appointment controller", () => {
     }));
   });
 
+  it("rejects create when patientId is not a valid ObjectId", async () => {
+    const req = {
+      body: {
+        patientId: "invalid-patient-id",
+        doctorId: "662222222222222222222221",
+        appointmentDate: "2026-04-10",
+        appointmentTime: "10:30",
+        reason: "General checkup"
+      }
+    };
+    const res = createResponse();
+    const next = createNext();
+
+    await createAppointment(req, res, next);
+
+    expect(AppointmentMock.findOne).not.toHaveBeenCalled();
+    expect(AppointmentMock.create).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledWith(expect.objectContaining({
+      statusCode: 400,
+      message: "patientId must be a valid MongoDB ObjectId"
+    }));
+  });
+
   it("returns all appointments in sorted order", async () => {
     const req = {};
     const res = createResponse();
@@ -154,15 +177,33 @@ describe("Appointment controller", () => {
     });
   });
 
-  it("returns one appointment by id", async () => {
+  it("rejects patient lookup when patientId is not a valid ObjectId", async () => {
     const req = {
       params: {
-        id: "appt-1"
+        patientId: "invalid-patient-id"
       }
     };
     const res = createResponse();
     const next = createNext();
-    const appointment = { _id: "appt-1" };
+
+    await getAppointmentsByPatient(req, res, next);
+
+    expect(AppointmentMock.find).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledWith(expect.objectContaining({
+      statusCode: 400,
+      message: "patientId must be a valid MongoDB ObjectId"
+    }));
+  });
+
+  it("returns one appointment by id", async () => {
+    const req = {
+      params: {
+        id: "661111111111111111111113"
+      }
+    };
+    const res = createResponse();
+    const next = createNext();
+    const appointment = { _id: "661111111111111111111113" };
 
     AppointmentMock.findById.mockResolvedValue(appointment);
 
@@ -176,7 +217,7 @@ describe("Appointment controller", () => {
 
   it("updates an appointment when the new slot is valid", async () => {
     const appointment = {
-      _id: "appt-1",
+      _id: "661111111111111111111114",
       doctorId: { toString: () => "662222222222222222222221" },
       appointmentDate: "2026-04-10",
       appointmentTime: "10:30",
@@ -186,7 +227,7 @@ describe("Appointment controller", () => {
     };
     const req = {
       params: {
-        id: "appt-1"
+        id: "661111111111111111111114"
       },
       body: {
         appointmentDate: "2026-04-11",
@@ -210,7 +251,7 @@ describe("Appointment controller", () => {
     });
   });
 
-  it("rejects update when the requested slot is already booked", async () => {
+  it("rejects update when status is invalid", async () => {
     const appointment = {
       _id: "appt-1",
       doctorId: { toString: () => "662222222222222222222221" },
@@ -220,7 +261,59 @@ describe("Appointment controller", () => {
     };
     const req = {
       params: {
-        id: "appt-1"
+        id: "661111111111111111111119"
+      },
+      body: {
+        status: "pending"
+      }
+    };
+    const res = createResponse();
+    const next = createNext();
+
+    AppointmentMock.findById.mockResolvedValue(appointment);
+
+    await updateAppointment(req, res, next);
+
+    expect(appointment.save).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledWith(expect.objectContaining({
+      statusCode: 400,
+      message: "status must be booked, completed, or cancelled"
+    }));
+  });
+
+  it("rejects update when id is not a valid ObjectId", async () => {
+    const req = {
+      params: {
+        id: "invalid-id"
+      },
+      body: {
+        appointmentDate: "2026-04-11",
+        appointmentTime: "11:30"
+      }
+    };
+    const res = createResponse();
+    const next = createNext();
+
+    await updateAppointment(req, res, next);
+
+    expect(AppointmentMock.findById).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledWith(expect.objectContaining({
+      statusCode: 400,
+      message: "id must be a valid MongoDB ObjectId"
+    }));
+  });
+
+  it("rejects update when the requested slot is already booked", async () => {
+    const appointment = {
+      _id: "661111111111111111111115",
+      doctorId: { toString: () => "662222222222222222222221" },
+      appointmentDate: "2026-04-10",
+      appointmentTime: "10:30",
+      save: jest.fn()
+    };
+    const req = {
+      params: {
+        id: "661111111111111111111115"
       },
       body: {
         appointmentDate: "2026-04-11",
@@ -244,13 +337,13 @@ describe("Appointment controller", () => {
 
   it("cancels an appointment when it is still active", async () => {
     const appointment = {
-      _id: "appt-1",
+      _id: "661111111111111111111116",
       status: "booked",
       save: jest.fn().mockResolvedValue(true)
     };
     const req = {
       params: {
-        id: "appt-1"
+        id: "661111111111111111111116"
       }
     };
     const res = createResponse();
@@ -271,13 +364,13 @@ describe("Appointment controller", () => {
 
   it("rejects cancel when the appointment is already cancelled", async () => {
     const appointment = {
-      _id: "appt-1",
+      _id: "661111111111111111111117",
       status: "cancelled",
       save: jest.fn()
     };
     const req = {
       params: {
-        id: "appt-1"
+        id: "661111111111111111111117"
       }
     };
     const res = createResponse();
@@ -293,14 +386,32 @@ describe("Appointment controller", () => {
     }));
   });
 
+  it("rejects cancel when id is not a valid ObjectId", async () => {
+    const req = {
+      params: {
+        id: "invalid-id"
+      }
+    };
+    const res = createResponse();
+    const next = createNext();
+
+    await cancelAppointment(req, res, next);
+
+    expect(AppointmentMock.findById).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledWith(expect.objectContaining({
+      statusCode: 400,
+      message: "id must be a valid MongoDB ObjectId"
+    }));
+  });
+
   it("deletes an appointment when it exists", async () => {
     const appointment = {
-      _id: "appt-1",
+      _id: "661111111111111111111118",
       deleteOne: jest.fn().mockResolvedValue(true)
     };
     const req = {
       params: {
-        id: "appt-1"
+        id: "661111111111111111111118"
       }
     };
     const res = createResponse();
@@ -315,5 +426,23 @@ describe("Appointment controller", () => {
       success: true,
       message: "Appointment deleted successfully"
     });
+  });
+
+  it("rejects delete when id is not a valid ObjectId", async () => {
+    const req = {
+      params: {
+        id: "invalid-id"
+      }
+    };
+    const res = createResponse();
+    const next = createNext();
+
+    await deleteAppointment(req, res, next);
+
+    expect(AppointmentMock.findById).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledWith(expect.objectContaining({
+      statusCode: 400,
+      message: "id must be a valid MongoDB ObjectId"
+    }));
   });
 });

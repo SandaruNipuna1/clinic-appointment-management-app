@@ -1,4 +1,5 @@
 import Appointment from "../models/Appointment.js";
+import mongoose from "mongoose";
 import ApiError from "../utils/ApiError.js";
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -14,11 +15,23 @@ const validateDateAndTime = (appointmentDate, appointmentTime) => {
   }
 };
 
+const validateObjectId = (value, fieldName) => {
+  if (!mongoose.isValidObjectId(value)) {
+    throw new ApiError(400, `${fieldName} must be a valid MongoDB ObjectId`);
+  }
+};
+
+const validateAppointmentIdParam = (appointmentId) => {
+  validateObjectId(appointmentId, "id");
+};
+
 const validateAppointmentPayload = ({ patientId, doctorId, appointmentDate, appointmentTime, reason }) => {
   if (!patientId || !doctorId || !appointmentDate || !appointmentTime || !reason?.trim()) {
     throw new ApiError(400, "patientId, doctorId, appointmentDate, appointmentTime, and reason are required");
   }
 
+  validateObjectId(patientId, "patientId");
+  validateObjectId(doctorId, "doctorId");
   validateDateAndTime(appointmentDate, appointmentTime);
 };
 
@@ -70,6 +83,8 @@ export const getAppointments = async (_req, res, next) => {
 
 export const getAppointmentById = async (req, res, next) => {
   try {
+    validateAppointmentIdParam(req.params.id);
+
     const appointment = await Appointment.findById(req.params.id);
 
     if (!appointment) {
@@ -87,6 +102,8 @@ export const getAppointmentById = async (req, res, next) => {
 
 export const getAppointmentsByPatient = async (req, res, next) => {
   try {
+    validateObjectId(req.params.patientId, "patientId");
+
     const appointments = await Appointment.find({
       patientId: req.params.patientId
     }).sort({ appointmentDate: 1, appointmentTime: 1 });
@@ -103,6 +120,8 @@ export const getAppointmentsByPatient = async (req, res, next) => {
 
 export const updateAppointment = async (req, res, next) => {
   try {
+    validateAppointmentIdParam(req.params.id);
+
     const appointment = await Appointment.findById(req.params.id);
 
     if (!appointment) {
@@ -113,6 +132,7 @@ export const updateAppointment = async (req, res, next) => {
     const nextDate = req.body.appointmentDate || appointment.appointmentDate;
     const nextTime = req.body.appointmentTime || appointment.appointmentTime;
 
+    validateObjectId(nextDoctorId, "doctorId");
     validateDateAndTime(nextDate, nextTime);
 
     if (req.body.status && !["booked", "completed", "cancelled"].includes(req.body.status)) {
@@ -144,6 +164,8 @@ export const updateAppointment = async (req, res, next) => {
 
 export const cancelAppointment = async (req, res, next) => {
   try {
+    validateAppointmentIdParam(req.params.id);
+
     const appointment = await Appointment.findById(req.params.id);
 
     if (!appointment) {
@@ -169,6 +191,8 @@ export const cancelAppointment = async (req, res, next) => {
 
 export const deleteAppointment = async (req, res, next) => {
   try {
+    validateAppointmentIdParam(req.params.id);
+
     const appointment = await Appointment.findById(req.params.id);
 
     if (!appointment) {
