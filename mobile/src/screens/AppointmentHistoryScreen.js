@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { cancelAppointment, fetchAppointments, updateAppointment } from "../services/appointmentApi";
+import { validateAppointmentInputs } from "../utils/appointmentValidation";
 
 const PATIENT_NAMES = {
   "661111111111111111111111": "Nimal Perera",
@@ -84,6 +85,17 @@ const AppointmentHistoryScreen = ({ refreshToken, onAppointmentUpdated, onAppoin
 
   const handleUpdate = async () => {
     if (!editingAppointment) {
+      return;
+    }
+
+    const validationMessage = validateAppointmentInputs({
+      appointmentDate: editForm.appointmentDate,
+      appointmentTime: editForm.appointmentTime,
+      requireReason: false
+    });
+
+    if (validationMessage) {
+      Alert.alert("Invalid appointment details", validationMessage);
       return;
     }
 

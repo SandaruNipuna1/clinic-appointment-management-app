@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { createAppointment } from "../services/appointmentApi";
+import { validateAppointmentInputs } from "../utils/appointmentValidation";
 
 const SAMPLE_PATIENTS = [
   { id: "661111111111111111111111", name: "Nimal Perera" },
@@ -32,6 +33,12 @@ const AppointmentFormScreen = ({ onAppointmentCreated }) => {
   const handleSubmit = async () => {
     if (!form.patientId || !form.doctorId || !form.appointmentDate || !form.appointmentTime || !form.reason) {
       Alert.alert("Missing details", "Please fill in all appointment fields.");
+      return;
+    }
+
+    const validationMessage = validateAppointmentInputs(form);
+    if (validationMessage) {
+      Alert.alert("Invalid appointment details", validationMessage);
       return;
     }
 
