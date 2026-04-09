@@ -1,17 +1,8 @@
 import React, { useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { createAppointment } from "../services/appointmentApi";
+import { SAMPLE_DOCTORS, SAMPLE_PATIENTS } from "../data/demoProfiles";
 import { validateAppointmentInputs } from "../utils/appointmentValidation";
-
-const SAMPLE_PATIENTS = [
-  { id: "661111111111111111111111", name: "Nimal Perera" },
-  { id: "661111111111111111111112", name: "Kavindi Silva" }
-];
-
-const SAMPLE_DOCTORS = [
-  { id: "662222222222222222222221", name: "Dr. Fernando", specialty: "General Medicine", badge: "GF" },
-  { id: "662222222222222222222222", name: "Dr. Jayasinghe", specialty: "Cardiology", badge: "CJ" }
-];
 
 const AppointmentFormScreen = ({ onAppointmentCreated }) => {
   const [form, setForm] = useState({

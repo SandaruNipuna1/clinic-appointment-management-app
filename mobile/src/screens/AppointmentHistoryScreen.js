@@ -1,17 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { cancelAppointment, fetchAppointments, updateAppointment } from "../services/appointmentApi";
+import { DOCTOR_NAME_BY_ID, PATIENT_NAME_BY_ID } from "../data/demoProfiles";
 import { validateAppointmentInputs } from "../utils/appointmentValidation";
-
-const PATIENT_NAMES = {
-  "661111111111111111111111": "Nimal Perera",
-  "661111111111111111111112": "Kavindi Silva"
-};
-
-const DOCTOR_NAMES = {
-  "662222222222222222222221": "Dr. Fernando",
-  "662222222222222222222222": "Dr. Jayasinghe"
-};
 
 const AppointmentHistoryScreen = ({ refreshToken, onAppointmentUpdated, onAppointmentCancelled }) => {
   const [appointments, setAppointments] = useState([]);
@@ -108,7 +99,7 @@ const AppointmentHistoryScreen = ({ refreshToken, onAppointmentUpdated, onAppoin
         return;
       }
 
-      const doctorName = DOCTOR_NAMES[result.data.doctorId] || "doctor";
+      const doctorName = DOCTOR_NAME_BY_ID[result.data.doctorId] || "doctor";
       onAppointmentUpdated?.(`Appointment updated with ${doctorName} for ${result.data.appointmentDate} at ${result.data.appointmentTime}.`);
       Alert.alert("Success", "Appointment updated successfully.");
       closeEditModal();
@@ -134,8 +125,8 @@ const AppointmentHistoryScreen = ({ refreshToken, onAppointmentUpdated, onAppoin
       ) : null}
       {appointments.map((appointment) => (
         <View key={appointment._id} style={styles.item}>
-          <Text style={styles.doctor}>{DOCTOR_NAMES[appointment.doctorId] || `Doctor ID: ${appointment.doctorId}`}</Text>
-          <Text style={styles.meta}>{PATIENT_NAMES[appointment.patientId] || `Patient ID: ${appointment.patientId}`}</Text>
+          <Text style={styles.doctor}>{DOCTOR_NAME_BY_ID[appointment.doctorId] || `Doctor ID: ${appointment.doctorId}`}</Text>
+          <Text style={styles.meta}>{PATIENT_NAME_BY_ID[appointment.patientId] || `Patient ID: ${appointment.patientId}`}</Text>
           <Text style={styles.meta}>
             {appointment.appointmentDate} at {appointment.appointmentTime}
           </Text>
