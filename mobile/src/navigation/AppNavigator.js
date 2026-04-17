@@ -4,7 +4,10 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import { useSession } from "../context/SessionContext";
 import AdminMedicalRecordListScreen from "../screens/AdminMedicalRecordListScreen";
+import AdminDoctorListScreen from "../screens/AdminDoctorListScreen";
 import CreateMedicalRecordScreen from "../screens/CreateMedicalRecordScreen";
+import DoctorDetailScreen from "../screens/DoctorDetailScreen";
+import DoctorFormScreen from "../screens/DoctorFormScreen";
 import EditMedicalRecordScreen from "../screens/EditMedicalRecordScreen";
 import PatientRecordsHistoryScreen from "../screens/PatientRecordsHistoryScreen";
 import PrescriptionFormScreen from "../screens/PrescriptionFormScreen";
@@ -36,6 +39,9 @@ export default function AppNavigator() {
           component={CreateMedicalRecordScreen}
           options={{ title: "Create Medical Record" }}
         />
+        <Stack.Screen name="Doctors" component={AdminDoctorListScreen} options={{ title: "Doctor Directory" }} />
+        <Stack.Screen name="DoctorDetail" component={DoctorDetailScreen} options={{ title: "Doctor Detail" }} />
+        <Stack.Screen name="DoctorForm" component={DoctorFormScreen} options={{ title: "Doctor Form" }} />
         <Stack.Screen
           name="EditMedicalRecord"
           component={EditMedicalRecordScreen}

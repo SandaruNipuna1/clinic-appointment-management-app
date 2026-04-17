@@ -109,5 +109,45 @@ export const moduleApi = {
       baseUrl,
       token,
       endpoint: `/reports/${reportId}`
+    }),
+
+  getDoctors: ({ baseUrl, token }) =>
+    apiRequest({
+      baseUrl,
+      token,
+      endpoint: "/doctors"
+    }),
+
+  getDoctorById: ({ baseUrl, token, doctorId }) =>
+    apiRequest({
+      baseUrl,
+      token,
+      endpoint: `/doctors/${doctorId}`
+    }),
+
+  createDoctor: ({ baseUrl, token, payload }) =>
+    apiRequest({
+      baseUrl,
+      token,
+      endpoint: "/doctors",
+      method: "POST",
+      body: payload
+    }),
+
+  updateDoctor: ({ baseUrl, token, doctorId, payload }) =>
+    apiRequest({
+      baseUrl,
+      token,
+      endpoint: `/doctors/${doctorId}`,
+      method: "PUT",
+      body: payload
+    }),
+
+  deleteDoctor: ({ baseUrl, token, doctorId }) =>
+    apiRequest({
+      baseUrl,
+      token,
+      endpoint: `/doctors/${doctorId}`,
+      method: "DELETE"
     })
 };

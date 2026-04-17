@@ -100,6 +100,7 @@ export default function AdminMedicalRecordListScreen({ navigation }) {
         onPress={() => navigation.navigate("CreateMedicalRecord", { patientId })}
         variant="secondary"
       />
+      <PrimaryButton title="Manage Doctors" onPress={() => navigation.navigate("Doctors")} variant="secondary" />
       <PrimaryButton
         title="Go To Session Setup"
         onPress={() => navigation.navigate("SessionSetup")}
