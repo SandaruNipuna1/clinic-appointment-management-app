@@ -6,19 +6,47 @@ import PrimaryButton from "../components/PrimaryButton";
 import ScreenContainer from "../components/ScreenContainer";
 import { useAuth } from "../context/AuthContext";
 
-const ROLE_OPTIONS = ["patient", "receptionist", "admin"];
+const ROLE_OPTIONS = [
+  {
+    value: "patient",
+    label: "Patient",
+    description: "Book appointments"
+  },
+  {
+    value: "receptionist",
+    label: "Receptionist",
+    description: "Manage schedules"
+  },
+  {
+    value: "admin",
+    label: "Admin",
+    description: "Full system access"
+  }
+];
 
 export default function SignupScreen() {
   const { signup } = useAuth();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [role, setRole] = useState("patient");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleSignup = async () => {
-    if (!fullName.trim() || !email.trim() || !password.trim()) {
-      Alert.alert("Missing fields", "Please fill in all fields.");
+    if (!fullName.trim()) {
+      Alert.alert("Full name required", "Please enter your full name.");
+      return;
+    }
+
+    if (!email.trim()) {
+      Alert.alert("Email required", "Please enter your email.");
+      return;
+    }
+
+    if (!password.trim() || !confirmPassword.trim()) {
+      Alert.alert("Password required", "Please enter and confirm your password.");
       return;
     }
 
@@ -31,6 +59,11 @@ export default function SignupScreen() {
 
     if (password.trim().length < 6) {
       Alert.alert("Weak password", "Password must be at least 6 characters.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert("Password mismatch", "Password and confirm password must match.");
       return;
     }
 
@@ -55,16 +88,26 @@ export default function SignupScreen() {
         rightActionLabel={showPassword ? "Hide" : "Show"}
         onRightActionPress={() => setShowPassword((current) => !current)}
       />
+      <FormInput
+        label="Confirm Password"
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
+        secureTextEntry={!showConfirmPassword}
+        rightActionLabel={showConfirmPassword ? "Hide" : "Show"}
+        onRightActionPress={() => setShowConfirmPassword((current) => !current)}
+      />
 
       <Text style={styles.roleLabel}>Choose role</Text>
       <View style={styles.roleWrap}>
         {ROLE_OPTIONS.map((option) => (
-          <PrimaryButton
-            key={option}
-            title={option}
-            onPress={() => setRole(option)}
-            variant={role === option ? "primary" : "ghost"}
-          />
+          <View key={option.value} style={styles.roleCard}>
+            <PrimaryButton
+              title={option.label}
+              onPress={() => setRole(option.value)}
+              variant={role === option.value ? "primary" : "ghost"}
+            />
+            <Text style={styles.roleDescription}>{option.description}</Text>
+          </View>
         ))}
       </View>
 
@@ -95,9 +138,15 @@ const styles = StyleSheet.create({
     marginBottom: 10
   },
   roleWrap: {
-    flexDirection: "row",
-    flexWrap: "wrap",
     gap: 10,
     marginBottom: 8
+  },
+  roleCard: {
+    gap: 6
+  },
+  roleDescription: {
+    color: "#60757d",
+    fontSize: 13,
+    lineHeight: 18
   }
 });
