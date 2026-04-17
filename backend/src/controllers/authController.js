@@ -90,8 +90,25 @@ const updateProfile = asyncHandler(async (req, res) => {
     user.fullName = req.body.fullName.trim();
   }
 
-  if (req.body.password?.trim()) {
-    user.passwordHash = hashPassword(req.body.password.trim());
+  const wantsPasswordChange = Boolean(req.body.currentPassword?.trim() || req.body.newPassword?.trim());
+
+  if (wantsPasswordChange) {
+    if (!req.body.currentPassword?.trim()) {
+      res.status(400);
+      throw new Error("Current password is required");
+    }
+
+    if (!verifyPassword(req.body.currentPassword.trim(), user.passwordHash)) {
+      res.status(401);
+      throw new Error("Current password is incorrect");
+    }
+
+    if (!req.body.newPassword?.trim() || req.body.newPassword.trim().length < 6) {
+      res.status(400);
+      throw new Error("Password must be at least 6 characters");
+    }
+
+    user.passwordHash = hashPassword(req.body.newPassword.trim());
   }
 
   await user.save();
