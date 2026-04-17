@@ -34,10 +34,11 @@ export default function HomeDashboardScreen({ navigation }) {
             <Text style={[styles.topActionLabel, styles.logoutLabel]}>Logout</Text>
           </Pressable>
         </View>
-        <Text style={styles.eyebrow}>MongoDB Connected Workspace</Text>
-        <Text style={styles.title}>Integrated clinic management workspace</Text>
+        <Text style={styles.eyebrow}>Clinic Management System</Text>
+        <Text style={styles.title}>Simple clinic management app</Text>
         <Text style={styles.subtitle}>
-          Signed in as {currentUser?.fullName} ({currentUser?.role}). Explore the modules available for this role.
+          Signed in as {currentUser?.fullName} ({currentUser?.role}). Use the modules below to manage doctors,
+          appointments, and medical reports.
         </Text>
         <View style={styles.metricRow}>
           <View style={styles.metricCard}>

@@ -29,7 +29,7 @@ export default function ProfileScreen() {
   return (
     <ScreenContainer>
       <Text style={styles.title}>Profile</Text>
-      <Text style={styles.subtitle}>Review your account details, role, and sign out when you finish the demo.</Text>
+      <Text style={styles.subtitle}>Review your account details, role, and sign out when you finish using the app.</Text>
 
       <InfoCard
         title={currentUser?.fullName || "Profile"}

@@ -1,7 +1,0 @@
-export const DEMO_SESSION = {
-  apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL || "http://10.0.2.2:5000/api",
-  token:
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2MTExMTExMTExMTExMTExMTExMTExMSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc3NjQyNTc0MCwiZXhwIjoxNzc5MDE3NzQwfQ.W7mLI4MwQ78jWTf5DkcHW70H7Kl2ZUQM51h06HXUznA",
-  role: "admin",
-  userId: "661111111111111111111111"
-};

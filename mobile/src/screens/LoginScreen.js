@@ -7,15 +7,14 @@ import ScreenContainer from "../components/ScreenContainer";
 import { useAuth } from "../context/AuthContext";
 
 export default function LoginScreen({ navigation }) {
-  const { login, apiBaseUrl } = useAuth();
-  const [baseUrl, setBaseUrl] = useState(apiBaseUrl || "");
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
     try {
-      await login({ email, password, apiBaseUrl: baseUrl });
+      await login({ email, password });
     } catch (error) {
       Alert.alert("Login failed", error.message);
     }
@@ -30,8 +29,6 @@ export default function LoginScreen({ navigation }) {
           Sign in with a registered account to access the role-based clinic modules.
         </Text>
       </View>
-
-      <FormInput label="API Base URL" value={baseUrl} onChangeText={setBaseUrl} placeholder="http://192.168.x.x:5001/api" />
       <FormInput label="Email" value={email} onChangeText={setEmail} placeholder="name@example.com" />
       <FormInput
         label="Password"
