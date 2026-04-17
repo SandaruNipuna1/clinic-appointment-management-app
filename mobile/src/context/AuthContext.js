@@ -1,19 +1,45 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { authApi } from "../api/authApi";
 
 const AUTH_STORAGE_KEY = "clinic_frontend_auth_v1";
 
 const AuthContext = createContext(null);
 
-const DEFAULT_API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "http://10.0.2.2:5000/api";
+const demoUsers = [
+  {
+    id: "USR-001",
+    fullName: "Admin Nimal Perera",
+    email: "admin@clinic.demo",
+    password: "admin123",
+    role: "admin"
+  },
+  {
+    id: "USR-002",
+    fullName: "Reception Kavindi Silva",
+    email: "reception@clinic.demo",
+    password: "reception123",
+    role: "receptionist"
+  },
+  {
+    id: "USR-003",
+    fullName: "Patient Ayesha Fernando",
+    email: "patient@clinic.demo",
+    password: "patient123",
+    role: "patient"
+  }
+];
+
+const getNextUserId = (users) => {
+  const highest = users.reduce((max, user) => {
+    const numericValue = Number(String(user.id).replace("USR-", ""));
+    return Number.isNaN(numericValue) ? max : Math.max(max, numericValue);
+  }, 0);
+
+  return `USR-${String(highest + 1).padStart(3, "0")}`;
+};
 
 export function AuthProvider({ children }) {
-  const [authState, setAuthState] = useState({
-    apiBaseUrl: DEFAULT_API_BASE_URL,
-    token: "",
-    currentUser: null
-  });
+  const [users, setUsers] = useState(demoUsers);
   const [currentUser, setCurrentUser] = useState(null);
   const [isReady, setIsReady] = useState(false);
 
@@ -23,36 +49,8 @@ export function AuthProvider({ children }) {
         const saved = await AsyncStorage.getItem(AUTH_STORAGE_KEY);
         if (saved) {
           const parsed = JSON.parse(saved);
-          const nextBaseUrl = parsed.apiBaseUrl || DEFAULT_API_BASE_URL;
-          const nextToken = parsed.token || "";
-
-          if (nextToken) {
-            try {
-              const profile = await authApi.getProfile({
-                baseUrl: nextBaseUrl,
-                token: nextToken
-              });
-
-              const nextAuthState = {
-                apiBaseUrl: nextBaseUrl,
-                token: nextToken,
-                currentUser: profile
-              };
-
-              setAuthState(nextAuthState);
-              setCurrentUser(profile);
-              await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(nextAuthState));
-            } catch (error) {
-              await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
-            }
-          } else {
-            setAuthState({
-              apiBaseUrl: nextBaseUrl,
-              token: "",
-              currentUser: null
-            });
-            setCurrentUser(null);
-          }
+          setUsers(parsed.users || demoUsers);
+          setCurrentUser(parsed.currentUser || null);
         }
       } finally {
         setIsReady(true);
@@ -62,80 +60,72 @@ export function AuthProvider({ children }) {
     loadAuth();
   }, []);
 
-  const persistAuth = async (nextAuthState) => {
-    setAuthState(nextAuthState);
-    setCurrentUser(nextAuthState.currentUser);
-    await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(nextAuthState));
+  const persistAuth = async (nextUsers, nextCurrentUser) => {
+    setUsers(nextUsers);
+    setCurrentUser(nextCurrentUser);
+    await AsyncStorage.setItem(
+      AUTH_STORAGE_KEY,
+      JSON.stringify({
+        users: nextUsers,
+        currentUser: nextCurrentUser
+      })
+    );
   };
 
-  const login = async ({ email, password, apiBaseUrl }) => {
-    const nextBaseUrl = apiBaseUrl?.trim() || authState.apiBaseUrl || DEFAULT_API_BASE_URL;
-    const data = await authApi.login({
-      baseUrl: nextBaseUrl,
-      payload: {
-        email,
-        password
-      }
-    });
+  const login = async ({ email, password }) => {
+    const user = users.find(
+      (item) => item.email.toLowerCase() === email.trim().toLowerCase() && item.password === password
+    );
 
-    await persistAuth({
-      apiBaseUrl: nextBaseUrl,
-      token: data.token,
-      currentUser: data.user
-    });
+    if (!user) {
+      throw new Error("Invalid email or password");
+    }
+
+    await persistAuth(users, user);
   };
 
-  const signup = async ({ fullName, email, password, role, apiBaseUrl }) => {
-    const nextBaseUrl = apiBaseUrl?.trim() || authState.apiBaseUrl || DEFAULT_API_BASE_URL;
-    const data = await authApi.signup({
-      baseUrl: nextBaseUrl,
-      payload: {
-        fullName,
-        email,
-        password,
-        role
-      }
-    });
+  const signup = async ({ fullName, email, password, role }) => {
+    const normalizedEmail = email.trim().toLowerCase();
+    const existingUser = users.find((item) => item.email.toLowerCase() === normalizedEmail);
 
-    await persistAuth({
-      apiBaseUrl: nextBaseUrl,
-      token: data.token,
-      currentUser: data.user
-    });
+    if (existingUser) {
+      throw new Error("An account already exists for this email");
+    }
+
+    const newUser = {
+      id: getNextUserId(users),
+      fullName: fullName.trim(),
+      email: normalizedEmail,
+      password,
+      role
+    };
+
+    const nextUsers = [newUser, ...users];
+    await persistAuth(nextUsers, newUser);
   };
 
   const updateProfile = async (payload) => {
-    if (!authState.token) {
+    if (!currentUser) {
       return;
     }
 
-    const data = await authApi.updateProfile({
-      baseUrl: authState.apiBaseUrl,
-      token: authState.token,
-      payload
-    });
+    const updatedUser = {
+      ...currentUser,
+      fullName: payload.fullName.trim(),
+      email: payload.email.trim().toLowerCase()
+    };
 
-    await persistAuth({
-      apiBaseUrl: authState.apiBaseUrl,
-      token: data.token,
-      currentUser: data.user
-    });
+    const nextUsers = users.map((user) => (user.id === currentUser.id ? updatedUser : user));
+    await persistAuth(nextUsers, updatedUser);
   };
 
   const logout = async () => {
-    const nextAuthState = {
-      apiBaseUrl: authState.apiBaseUrl || DEFAULT_API_BASE_URL,
-      token: "",
-      currentUser: null
-    };
-
-    await persistAuth(nextAuthState);
+    await persistAuth(users, null);
   };
 
   const value = useMemo(
     () => ({
-      apiBaseUrl: authState.apiBaseUrl,
-      token: authState.token,
+      users,
       currentUser,
       isReady,
       login,
@@ -143,7 +133,7 @@ export function AuthProvider({ children }) {
       updateProfile,
       logout
     }),
-    [authState.apiBaseUrl, authState.token, currentUser, isReady]
+    [users, currentUser, isReady]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -39,13 +39,7 @@ export default function AppointmentListScreen({ navigation }) {
       {
         text: "Delete",
         style: "destructive",
-        onPress: async () => {
-          try {
-            await deleteAppointment(appointment.rawId);
-          } catch (error) {
-            Alert.alert("Delete failed", error.message);
-          }
-        }
+        onPress: () => deleteAppointment(appointment.id)
       }
     ]);
   };
@@ -113,12 +107,12 @@ export default function AppointmentListScreen({ navigation }) {
           </View>
           <PrimaryButton
             title="View Details"
-            onPress={() => navigation.navigate("AppointmentDetail", { appointmentId: appointment.rawId })}
+            onPress={() => navigation.navigate("AppointmentDetail", { appointmentId: appointment.id })}
           />
           {canEditAppointments ? (
             <PrimaryButton
               title="Edit Appointment"
-              onPress={() => navigation.navigate("AppointmentForm", { appointmentId: appointment.rawId })}
+              onPress={() => navigation.navigate("AppointmentForm", { appointmentId: appointment.id })}
               variant="secondary"
             />
           ) : null}

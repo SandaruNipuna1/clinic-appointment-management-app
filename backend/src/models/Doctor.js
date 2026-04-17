@@ -45,12 +45,6 @@ const doctorSchema = new mongoose.Schema(
       required: true,
       trim: true
     },
-    doctorCode: {
-      type: String,
-      unique: true,
-      trim: true,
-      sparse: true
-    },
     experience: {
       type: Number,
       default: 0,
@@ -64,21 +58,6 @@ const doctorSchema = new mongoose.Schema(
     availability: {
       type: [availabilitySchema],
       default: []
-    },
-    availabilityLabel: {
-      type: String,
-      trim: true,
-      default: ""
-    },
-    roomNumber: {
-      type: String,
-      trim: true,
-      default: ""
-    },
-    department: {
-      type: String,
-      trim: true,
-      default: ""
     },
     isActive: {
       type: Boolean,

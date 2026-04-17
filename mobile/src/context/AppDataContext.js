@@ -1,323 +1,243 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import { moduleApi } from "../api/moduleApi";
-import { useAuth } from "./AuthContext";
+const STORAGE_KEY = "clinic_frontend_demo_state_v1";
+
+const initialDoctors = [
+  {
+    id: "DOC-001",
+    name: "Dr. Nimal Perera",
+    specialization: "Cardiology",
+    phone: "+94 71 234 5678",
+    email: "nimal.perera@clinic.demo",
+    availability: "Mon, Wed, Fri - 09:00 to 15:00",
+    roomNumber: "Cardiac Wing / Room 12",
+    department: "Cardiology"
+  },
+  {
+    id: "DOC-002",
+    name: "Dr. Kavindi Silva",
+    specialization: "Pediatrics",
+    phone: "+94 77 456 7821",
+    email: "kavindi.silva@clinic.demo",
+    availability: "Tue, Thu - 10:00 to 17:00",
+    roomNumber: "Children's Unit / Room 4",
+    department: "Pediatrics"
+  },
+  {
+    id: "DOC-003",
+    name: "Dr. Rashmika Fernando",
+    specialization: "Dermatology",
+    phone: "+94 76 889 9012",
+    email: "rashmika.fernando@clinic.demo",
+    availability: "Daily - 11:00 to 18:00",
+    roomNumber: "Skin Care / Room 8",
+    department: "Dermatology"
+  }
+];
+
+const initialAppointments = [
+  {
+    id: "APT-1001",
+    patientName: "Ayesha Fernando",
+    doctorId: "DOC-001",
+    doctorName: "Dr. Nimal Perera",
+    date: "2026-04-20",
+    time: "09:30",
+    reason: "Routine heart checkup",
+    status: "Scheduled"
+  },
+  {
+    id: "APT-1002",
+    patientName: "Dilan Jayawardena",
+    doctorId: "DOC-002",
+    doctorName: "Dr. Kavindi Silva",
+    date: "2026-04-21",
+    time: "11:00",
+    reason: "Child fever follow-up",
+    status: "Completed"
+  },
+  {
+    id: "APT-1003",
+    patientName: "Nehara Wickramasinghe",
+    doctorId: "DOC-003",
+    doctorName: "Dr. Rashmika Fernando",
+    date: "2026-04-22",
+    time: "14:30",
+    reason: "Skin allergy review",
+    status: "Cancelled"
+  }
+];
+
+const initialReports = [
+  {
+    id: "REP-5001",
+    patientName: "Ayesha Fernando",
+    doctorName: "Dr. Nimal Perera",
+    diagnosis: "Stable blood pressure with mild arrhythmia",
+    symptoms: "Occasional chest discomfort, fatigue",
+    treatment: "Medication review and low-sodium diet",
+    prescriptionNote: "Continue beta blocker for two weeks",
+    reportDate: "2026-04-20",
+    additionalNotes: "Follow-up ECG recommended in 14 days"
+  },
+  {
+    id: "REP-5002",
+    patientName: "Dilan Jayawardena",
+    doctorName: "Dr. Kavindi Silva",
+    diagnosis: "Seasonal viral infection",
+    symptoms: "Fever, mild cough, low appetite",
+    treatment: "Hydration, rest, temperature monitoring",
+    prescriptionNote: "Paracetamol syrup as needed",
+    reportDate: "2026-04-18",
+    additionalNotes: "Observe for 48 hours before next review"
+  }
+];
 
 const AppDataContext = createContext(null);
 
-const formatDate = (value) => {
-  if (!value) {
-    return "";
-  }
-
-  return new Date(value).toISOString().slice(0, 10);
+const initialState = {
+  doctors: initialDoctors,
+  appointments: initialAppointments,
+  reports: initialReports
 };
 
-const formatAvailability = (doctor) => {
-  if (doctor.availabilityLabel) {
-    return doctor.availabilityLabel;
-  }
+const getNextId = (prefix, items) => {
+  const highest = items.reduce((max, item) => {
+    const numericValue = Number(String(item.id).replace(`${prefix}-`, ""));
+    return Number.isNaN(numericValue) ? max : Math.max(max, numericValue);
+  }, 0);
 
-  if (!Array.isArray(doctor.availability) || doctor.availability.length === 0) {
-    return "";
-  }
-
-  return doctor.availability
-    .map((entry) => `${entry.day} ${entry.startTime}-${entry.endTime}`)
-    .join(", ");
+  return `${prefix}-${String(highest + 1).padStart(4, "0")}`;
 };
-
-const mapDoctor = (doctor) => ({
-  rawId: doctor._id,
-  id: doctor.doctorCode || doctor._id,
-  name: doctor.name,
-  specialization: doctor.specialization,
-  phone: doctor.phone,
-  email: doctor.email,
-  availability: formatAvailability(doctor),
-  roomNumber: doctor.roomNumber || "",
-  department: doctor.department || ""
-});
-
-const mapAppointment = (appointment) => ({
-  rawId: appointment._id,
-  id: appointment.appointmentCode || appointment._id,
-  patientName: appointment.patientName,
-  patientId: appointment.patientId || null,
-  doctorId: appointment.doctorId,
-  doctorName: appointment.doctorName,
-  date: formatDate(appointment.date),
-  time: appointment.time,
-  reason: appointment.reason,
-  status: appointment.status
-});
-
-const mapReport = (report) => ({
-  rawId: report._id,
-  id: report.reportCode || report._id,
-  patientName: report.patientName,
-  patientId: report.patientId || null,
-  doctorName: report.doctorName,
-  diagnosis: report.diagnosis,
-  symptoms: report.symptoms,
-  treatment: report.treatment,
-  prescriptionNote: report.prescriptionNote,
-  reportDate: formatDate(report.reportDate),
-  additionalNotes: report.additionalNotes || ""
-});
 
 export function AppDataProvider({ children }) {
-  const { apiBaseUrl, token, currentUser, isReady: isAuthReady } = useAuth();
-  const [state, setState] = useState({
-    doctors: [],
-    appointments: [],
-    reports: []
-  });
+  const [state, setState] = useState(initialState);
   const [isReady, setIsReady] = useState(false);
 
-  const refreshData = useCallback(async () => {
-    if (!token) {
-      setState({
-        doctors: [],
-        appointments: [],
-        reports: []
-      });
-      setIsReady(true);
-      return;
-    }
-
-    const [doctorData, appointmentData, reportData] = await Promise.all([
-      moduleApi.getDoctors({ baseUrl: apiBaseUrl, token }),
-      moduleApi.getAppointments({ baseUrl: apiBaseUrl, token }),
-      moduleApi.getMedicalReports({ baseUrl: apiBaseUrl, token })
-    ]);
-
-    setState({
-      doctors: doctorData.map(mapDoctor),
-      appointments: appointmentData.map(mapAppointment),
-      reports: reportData.map(mapReport)
-    });
-    setIsReady(true);
-  }, [apiBaseUrl, token]);
-
   useEffect(() => {
-    const load = async () => {
-      if (!isAuthReady) {
-        return;
-      }
-
+    const loadState = async () => {
       try {
-        await refreshData();
-      } catch (error) {
-        console.warn("Failed to load app data", error);
-        setState({
-          doctors: [],
-          appointments: [],
-          reports: []
-        });
+        const saved = await AsyncStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          setState(JSON.parse(saved));
+        }
+      } finally {
         setIsReady(true);
       }
     };
 
-    load();
-  }, [isAuthReady, refreshData]);
+    loadState();
+  }, []);
+
+  const persistState = async (nextState) => {
+    setState(nextState);
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(nextState));
+  };
 
   const upsertDoctor = async (doctor) => {
-    const payload = {
-      name: doctor.name.trim(),
-      specialization: doctor.specialization.trim(),
-      phone: doctor.phone.trim(),
-      email: doctor.email.trim().toLowerCase(),
-      availabilityLabel: doctor.availability.trim(),
-      roomNumber: doctor.roomNumber.trim(),
-      department: doctor.department.trim()
+    const previousDoctor = state.doctors.find((item) => item.id === doctor.id);
+    const normalizedDoctor = {
+      ...doctor,
+      id: doctor.id || getNextId("DOC", state.doctors)
     };
 
-    const savedDoctor = doctor.rawId
-      ? await moduleApi.updateDoctor({
-          baseUrl: apiBaseUrl,
-          token,
-          doctorId: doctor.rawId,
-          payload
-        })
-      : await moduleApi.createDoctor({
-          baseUrl: apiBaseUrl,
-          token,
-          payload
-        });
+    const doctorExists = state.doctors.some((item) => item.id === normalizedDoctor.id);
+    const nextDoctors = doctorExists
+      ? state.doctors.map((item) => (item.id === normalizedDoctor.id ? normalizedDoctor : item))
+      : [normalizedDoctor, ...state.doctors];
 
-    const nextDoctor = mapDoctor(savedDoctor);
+    const nextAppointments = state.appointments.map((appointment) =>
+      appointment.doctorId === normalizedDoctor.id
+        ? {
+            ...appointment,
+            doctorName: normalizedDoctor.name
+          }
+        : appointment
+    );
 
-    setState((current) => {
-      const previousDoctor = current.doctors.find((item) => item.rawId === nextDoctor.rawId);
-      const exists = current.doctors.some((item) => item.rawId === nextDoctor.rawId);
-      const nextDoctors = exists
-        ? current.doctors.map((item) => (item.rawId === nextDoctor.rawId ? nextDoctor : item))
-        : [nextDoctor, ...current.doctors];
+    const nextReports = state.reports.map((report) =>
+      report.doctorName === previousDoctor?.name
+        ? {
+            ...report,
+            doctorName: normalizedDoctor.name
+          }
+        : report
+    );
 
-      const nextAppointments = current.appointments.map((appointment) =>
-        appointment.doctorId === nextDoctor.rawId
-          ? {
-              ...appointment,
-              doctorName: nextDoctor.name
-            }
-          : appointment
-      );
-
-      const nextReports = current.reports.map((report) =>
-        report.doctorName === previousDoctor?.name || report.doctorName === nextDoctor.name
-          ? {
-              ...report,
-              doctorName: nextDoctor.name
-            }
-          : report
-      );
-
-      return {
-        doctors: nextDoctors,
-        appointments: nextAppointments,
-        reports: nextReports
-      };
+    await persistState({
+      ...state,
+      doctors: nextDoctors,
+      appointments: nextAppointments,
+      reports: nextReports
     });
   };
 
   const deleteDoctor = async (doctorId) => {
-    await moduleApi.deleteDoctor({
-      baseUrl: apiBaseUrl,
-      token,
-      doctorId
+    await persistState({
+      ...state,
+      doctors: state.doctors.filter((doctor) => doctor.id !== doctorId)
     });
-
-    setState((current) => ({
-      ...current,
-      doctors: current.doctors.filter((doctor) => doctor.rawId !== doctorId)
-    }));
   };
 
   const upsertAppointment = async (appointment) => {
-    const selectedDoctor = state.doctors.find((doctor) => doctor.rawId === appointment.doctorId);
-    const payload = {
-      patientName: appointment.patientName.trim(),
-      doctorId: appointment.doctorId,
-      date: appointment.date.trim(),
-      time: appointment.time.trim(),
-      reason: appointment.reason.trim(),
-      status: appointment.status.trim(),
-      patientId: appointment.patientId || null
+    const doctor = state.doctors.find((item) => item.id === appointment.doctorId);
+    const normalizedAppointment = {
+      ...appointment,
+      id: appointment.id || getNextId("APT", state.appointments),
+      doctorName: doctor?.name || appointment.doctorName || ""
     };
 
-    const savedAppointment = appointment.rawId
-      ? await moduleApi.updateAppointment({
-          baseUrl: apiBaseUrl,
-          token,
-          appointmentId: appointment.rawId,
-          payload
-        })
-      : await moduleApi.createAppointment({
-          baseUrl: apiBaseUrl,
-          token,
-          payload
-        });
+    const exists = state.appointments.some((item) => item.id === normalizedAppointment.id);
+    const nextAppointments = exists
+      ? state.appointments.map((item) => (item.id === normalizedAppointment.id ? normalizedAppointment : item))
+      : [normalizedAppointment, ...state.appointments];
 
-    const nextAppointment = mapAppointment(savedAppointment);
-
-    setState((current) => {
-      const exists = current.appointments.some((item) => item.rawId === nextAppointment.rawId);
-      const nextAppointments = exists
-        ? current.appointments.map((item) => (item.rawId === nextAppointment.rawId ? nextAppointment : item))
-        : [nextAppointment, ...current.appointments];
-
-      return {
-        ...current,
-        appointments: nextAppointments.map((item) =>
-          item.rawId === nextAppointment.rawId
-            ? {
-                ...item,
-                doctorName: nextAppointment.doctorName || selectedDoctor?.name || item.doctorName
-              }
-            : item
-        )
-      };
+    await persistState({
+      ...state,
+      appointments: nextAppointments
     });
   };
 
   const deleteAppointment = async (appointmentId) => {
-    await moduleApi.deleteAppointment({
-      baseUrl: apiBaseUrl,
-      token,
-      appointmentId
+    await persistState({
+      ...state,
+      appointments: state.appointments.filter((appointment) => appointment.id !== appointmentId)
     });
-
-    setState((current) => ({
-      ...current,
-      appointments: current.appointments.filter((appointment) => appointment.rawId !== appointmentId)
-    }));
   };
 
   const upsertReport = async (report) => {
-    const payload = {
-      patientName: report.patientName.trim(),
-      patientId: report.patientId || null,
-      doctorName: report.doctorName.trim(),
-      diagnosis: report.diagnosis.trim(),
-      symptoms: report.symptoms.trim(),
-      treatment: report.treatment.trim(),
-      prescriptionNote: report.prescriptionNote.trim(),
-      reportDate: report.reportDate.trim(),
-      additionalNotes: report.additionalNotes.trim()
+    const normalizedReport = {
+      ...report,
+      id: report.id || getNextId("REP", state.reports)
     };
 
-    const savedReport = report.rawId
-      ? await moduleApi.updateMedicalReport({
-          baseUrl: apiBaseUrl,
-          token,
-          reportId: report.rawId,
-          payload
-        })
-      : await moduleApi.createMedicalReport({
-          baseUrl: apiBaseUrl,
-          token,
-          payload
-        });
+    const exists = state.reports.some((item) => item.id === normalizedReport.id);
+    const nextReports = exists
+      ? state.reports.map((item) => (item.id === normalizedReport.id ? normalizedReport : item))
+      : [normalizedReport, ...state.reports];
 
-    const nextReport = mapReport(savedReport);
-
-    setState((current) => {
-      const exists = current.reports.some((item) => item.rawId === nextReport.rawId);
-      const nextReports = exists
-        ? current.reports.map((item) => (item.rawId === nextReport.rawId ? nextReport : item))
-        : [nextReport, ...current.reports];
-
-      return {
-        ...current,
-        reports: nextReports
-      };
+    await persistState({
+      ...state,
+      reports: nextReports
     });
   };
 
   const deleteReport = async (reportId) => {
-    await moduleApi.deleteMedicalReport({
-      baseUrl: apiBaseUrl,
-      token,
-      reportId
+    await persistState({
+      ...state,
+      reports: state.reports.filter((report) => report.id !== reportId)
     });
-
-    setState((current) => ({
-      ...current,
-      reports: current.reports.filter((report) => report.rawId !== reportId)
-    }));
   };
 
   const resetDemoData = async () => {
-    await refreshData();
+    await persistState(initialState);
   };
 
   const value = useMemo(
     () => ({
       ...state,
-      currentUser,
       isReady,
-      refreshData,
       upsertDoctor,
       deleteDoctor,
       upsertAppointment,
@@ -326,7 +246,7 @@ export function AppDataProvider({ children }) {
       deleteReport,
       resetDemoData
     }),
-    [currentUser, isReady, refreshData, state]
+    [state, isReady]
   );
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;

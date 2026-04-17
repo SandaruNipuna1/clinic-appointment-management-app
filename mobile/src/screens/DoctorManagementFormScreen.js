@@ -31,7 +31,7 @@ export default function DoctorManagementFormScreen({ navigation, route }) {
   const { doctors, upsertDoctor } = useAppData();
   const { currentUser } = useAuth();
   const doctorId = route.params?.doctorId;
-  const existingDoctor = useMemo(() => doctors.find((doctor) => doctor.rawId === doctorId), [doctors, doctorId]);
+  const existingDoctor = useMemo(() => doctors.find((doctor) => doctor.id === doctorId), [doctors, doctorId]);
   const [values, setValues] = useState({
     id: existingDoctor?.id || "",
     name: existingDoctor?.name || "",
@@ -56,24 +56,19 @@ export default function DoctorManagementFormScreen({ navigation, route }) {
       return;
     }
 
-    try {
-      await upsertDoctor({
-        ...values,
-        rawId: existingDoctor?.rawId,
-        name: values.name.trim(),
-        specialization: values.specialization.trim(),
-        phone: values.phone.trim(),
-        email: values.email.trim().toLowerCase(),
-        availability: values.availability.trim(),
-        roomNumber: values.roomNumber.trim(),
-        department: values.department.trim()
-      });
+    await upsertDoctor({
+      ...values,
+      name: values.name.trim(),
+      specialization: values.specialization.trim(),
+      phone: values.phone.trim(),
+      email: values.email.trim().toLowerCase(),
+      availability: values.availability.trim(),
+      roomNumber: values.roomNumber.trim(),
+      department: values.department.trim()
+    });
 
-      Alert.alert("Saved", existingDoctor ? "Doctor details updated." : "Doctor added successfully.");
-      navigation.goBack();
-    } catch (error) {
-      Alert.alert("Save failed", error.message);
-    }
+    Alert.alert("Saved", existingDoctor ? "Doctor details updated." : "Doctor added successfully.");
+    navigation.goBack();
   };
 
   if (!["admin", "receptionist"].includes(currentUser?.role)) {

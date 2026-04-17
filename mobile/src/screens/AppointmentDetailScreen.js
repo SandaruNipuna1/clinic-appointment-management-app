@@ -9,7 +9,7 @@ import { useAppData } from "../context/AppDataContext";
 export default function AppointmentDetailScreen({ navigation, route }) {
   const { appointments } = useAppData();
   const appointment = useMemo(
-    () => appointments.find((item) => item.rawId === route.params?.appointmentId),
+    () => appointments.find((item) => item.id === route.params?.appointmentId),
     [appointments, route.params?.appointmentId]
   );
 
@@ -38,7 +38,7 @@ export default function AppointmentDetailScreen({ navigation, route }) {
       />
       <PrimaryButton
         title="Edit Appointment"
-        onPress={() => navigation.navigate("AppointmentForm", { appointmentId: appointment.rawId })}
+        onPress={() => navigation.navigate("AppointmentForm", { appointmentId: appointment.id })}
       />
       <PrimaryButton title="Back to Appointments" onPress={() => navigation.goBack()} variant="ghost" />
     </ScreenContainer>

@@ -37,20 +37,14 @@ export default function MedicalReportListScreen({ navigation }) {
       {
         text: "Delete",
         style: "destructive",
-        onPress: async () => {
-          try {
-            await deleteReport(report.rawId);
-          } catch (error) {
-            Alert.alert("Delete failed", error.message);
-          }
-        }
+        onPress: () => deleteReport(report.id)
       }
     ]);
   };
 
   return (
     <ScreenContainer>
-      <Text style={styles.title}>Medical Reports</Text>
+      <Text style={styles.title}>Medical Report Frontend</Text>
       <Text style={styles.subtitle}>Manage patient reports with fast search, doctor filtering, and detail views.</Text>
 
       <View style={styles.panel}>
@@ -82,11 +76,11 @@ export default function MedicalReportListScreen({ navigation }) {
             `Date: ${report.reportDate}`
           ]}
         >
-          <PrimaryButton title="View Report" onPress={() => navigation.navigate("ReportDetail", { reportId: report.rawId })} />
+          <PrimaryButton title="View Report" onPress={() => navigation.navigate("ReportDetail", { reportId: report.id })} />
           {canEditReports ? (
             <PrimaryButton
               title="Edit Report"
-              onPress={() => navigation.navigate("ReportForm", { reportId: report.rawId })}
+              onPress={() => navigation.navigate("ReportForm", { reportId: report.id })}
               variant="secondary"
             />
           ) : null}

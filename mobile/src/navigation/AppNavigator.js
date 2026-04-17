@@ -31,7 +31,7 @@ export default function AppNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName={currentUser ? "Home" : "Login"}
+        initialRouteName="Home"
         screenOptions={{
           headerLargeTitle: false,
           headerShadowVisible: false,

@@ -8,7 +8,7 @@ import { useAppData } from "../context/AppDataContext";
 
 export default function MedicalReportDetailScreen({ navigation, route }) {
   const { reports } = useAppData();
-  const report = useMemo(() => reports.find((item) => item.rawId === route.params?.reportId), [reports, route.params?.reportId]);
+  const report = useMemo(() => reports.find((item) => item.id === route.params?.reportId), [reports, route.params?.reportId]);
 
   if (!report) {
     return (
@@ -34,7 +34,7 @@ export default function MedicalReportDetailScreen({ navigation, route }) {
           `Additional Notes: ${report.additionalNotes || "-"}`
         ]}
       />
-      <PrimaryButton title="Edit Report" onPress={() => navigation.navigate("ReportForm", { reportId: report.rawId })} />
+      <PrimaryButton title="Edit Report" onPress={() => navigation.navigate("ReportForm", { reportId: report.id })} />
       <PrimaryButton title="Back to Reports" onPress={() => navigation.goBack()} variant="ghost" />
     </ScreenContainer>
   );
