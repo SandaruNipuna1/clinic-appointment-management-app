@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { Alert, Text } from "react-native";
+import { Alert, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 
 import InfoCard from "../components/InfoCard";
@@ -66,26 +66,40 @@ export default function AdminDoctorListScreen({ navigation }) {
 
   return (
     <ScreenContainer>
-      <Text style={{ fontSize: 20, fontWeight: "700", marginBottom: 8 }}>Doctor management</Text>
-      <Text style={{ color: "#475569", marginBottom: 16 }}>
-        Add doctors, review availability, and maintain the active directory used across the clinic app.
-      </Text>
+      <View style={styles.heroCard}>
+        <Text style={styles.heroEyebrow}>Doctor Directory</Text>
+        <Text style={styles.heroTitle}>People behind the clinic</Text>
+        <Text style={styles.heroText}>
+          Review active doctors, check specialties, and keep weekly schedules tidy before appointments are booked.
+        </Text>
+        <View style={styles.metricBand}>
+          <Text style={styles.metricValue}>{doctors.length}</Text>
+          <Text style={styles.metricLabel}>Active doctors available</Text>
+        </View>
+      </View>
 
-      {error ? <Text style={{ color: "#dc2626", marginBottom: 12 }}>{error}</Text> : null}
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-      <PrimaryButton title="Refresh Doctors" onPress={loadDoctors} loading={loading} />
-      {session.role === "admin" ? (
+      <View style={styles.actionRow}>
+        <PrimaryButton title="Refresh Doctors" onPress={loadDoctors} loading={loading} />
+        {session.role === "admin" ? (
+          <PrimaryButton
+            title="Add New Doctor"
+            onPress={() => navigation.navigate("DoctorForm", { mode: "create" })}
+            variant="secondary"
+          />
+        ) : null}
         <PrimaryButton
-          title="Add New Doctor"
-          onPress={() => navigation.navigate("DoctorForm", { mode: "create" })}
-          variant="secondary"
+          title={session.role === "admin" ? "Back To Dashboard" : "Back To History"}
+          onPress={() => navigation.navigate(session.role === "admin" ? "AdminMedicalRecords" : "PatientHistory")}
+          variant="ghost"
         />
-      ) : null}
-      <PrimaryButton
-        title={session.role === "admin" ? "Back To Admin Dashboard" : "Back To History"}
-        onPress={() => navigation.navigate(session.role === "admin" ? "AdminMedicalRecords" : "PatientHistory")}
-        variant="secondary"
-      />
+      </View>
+
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>Directory list</Text>
+        <Text style={styles.sectionCaption}>Each card includes direct access to detail and admin actions.</Text>
+      </View>
 
       {doctors.map((doctor) => (
         <InfoCard
@@ -121,3 +135,70 @@ export default function AdminDoctorListScreen({ navigation }) {
     </ScreenContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  heroCard: {
+    backgroundColor: "#f7fffd",
+    borderRadius: 28,
+    padding: 22,
+    marginBottom: 18,
+    borderWidth: 1,
+    borderColor: "#cfe9e3"
+  },
+  heroEyebrow: {
+    color: "#0f766e",
+    fontSize: 12,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 1.2,
+    marginBottom: 10
+  },
+  heroTitle: {
+    fontSize: 30,
+    lineHeight: 35,
+    fontWeight: "800",
+    color: "#11323d",
+    marginBottom: 10
+  },
+  heroText: {
+    color: "#56707a",
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: 16
+  },
+  metricBand: {
+    backgroundColor: "#123b46",
+    borderRadius: 20,
+    padding: 16
+  },
+  metricValue: {
+    color: "#ffffff",
+    fontSize: 26,
+    fontWeight: "800",
+    marginBottom: 4
+  },
+  metricLabel: {
+    color: "#c7dde0",
+    fontSize: 13
+  },
+  errorText: {
+    color: "#dc2626",
+    marginBottom: 12
+  },
+  actionRow: {
+    marginBottom: 18
+  },
+  sectionHeader: {
+    marginBottom: 12
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#17303b",
+    marginBottom: 4
+  },
+  sectionCaption: {
+    color: "#60757d",
+    fontSize: 14
+  }
+});

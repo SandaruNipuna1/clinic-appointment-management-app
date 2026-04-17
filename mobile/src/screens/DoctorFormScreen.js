@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Alert, Text, View } from "react-native";
+import { Alert, StyleSheet, Text, View } from "react-native";
 
 import FormInput from "../components/FormInput";
 import PrimaryButton from "../components/PrimaryButton";
@@ -118,43 +118,38 @@ export default function DoctorFormScreen({ navigation, route }) {
 
   return (
     <ScreenContainer>
-      <Text style={{ fontSize: 20, fontWeight: "700", marginBottom: 8 }}>
-        {mode === "edit" ? "Edit doctor" : "Add doctor"}
-      </Text>
-      <Text style={{ color: "#475569", marginBottom: 16 }}>
-        Capture doctor profile details and weekly availability in the same clinic app flow.
-      </Text>
+      <View style={styles.heroCard}>
+        <Text style={styles.heroEyebrow}>{mode === "edit" ? "Doctor Update" : "Doctor Onboarding"}</Text>
+        <Text style={styles.heroTitle}>{mode === "edit" ? "Refine the doctor profile" : "Add a new doctor profile"}</Text>
+        <Text style={styles.heroText}>
+          Keep the profile concise, professional, and ready for quick scheduling decisions by the clinic team.
+        </Text>
+      </View>
 
-      <FormInput label="Name" value={values.name} onChangeText={(value) => handleChange("name", value)} error={errors.name} />
-      <FormInput
-        label="Specialization"
-        value={values.specialization}
-        onChangeText={(value) => handleChange("specialization", value)}
-        error={errors.specialization}
-      />
-      <FormInput label="Email" value={values.email} onChangeText={(value) => handleChange("email", value)} error={errors.email} />
-      <FormInput label="Phone" value={values.phone} onChangeText={(value) => handleChange("phone", value)} error={errors.phone} />
-      <FormInput
-        label="Experience (years)"
-        value={values.experience}
-        onChangeText={(value) => handleChange("experience", value)}
-        error={errors.experience}
-      />
-      <FormInput label="Bio" value={values.bio} onChangeText={(value) => handleChange("bio", value)} multiline />
+      <View style={styles.panel}>
+        <Text style={styles.panelTitle}>Profile details</Text>
+        <FormInput label="Name" value={values.name} onChangeText={(value) => handleChange("name", value)} error={errors.name} />
+        <FormInput
+          label="Specialization"
+          value={values.specialization}
+          onChangeText={(value) => handleChange("specialization", value)}
+          error={errors.specialization}
+        />
+        <FormInput label="Email" value={values.email} onChangeText={(value) => handleChange("email", value)} error={errors.email} />
+        <FormInput label="Phone" value={values.phone} onChangeText={(value) => handleChange("phone", value)} error={errors.phone} />
+        <FormInput
+          label="Experience (years)"
+          value={values.experience}
+          onChangeText={(value) => handleChange("experience", value)}
+          error={errors.experience}
+        />
+        <FormInput label="Bio" value={values.bio} onChangeText={(value) => handleChange("bio", value)} multiline />
+      </View>
 
-      <Text style={{ fontSize: 17, fontWeight: "700", marginBottom: 10 }}>Availability</Text>
+      <Text style={styles.sectionTitle}>Availability schedule</Text>
       {values.availability.map((slot, index) => (
-        <View
-          key={`availability-${index}`}
-          style={{
-            backgroundColor: "#ffffff",
-            borderRadius: 12,
-            borderWidth: 1,
-            borderColor: "#e2e8f0",
-            padding: 12,
-            marginBottom: 12
-          }}
-        >
+        <View key={`availability-${index}`} style={styles.slotCard}>
+          <Text style={styles.slotTitle}>Time block {index + 1}</Text>
           <FormInput
             label="Day"
             value={slot.day}
@@ -175,7 +170,7 @@ export default function DoctorFormScreen({ navigation, route }) {
             placeholder="17:00"
             error={errors[`availability_${index}_endTime`]}
           />
-          <PrimaryButton title="Remove Slot" onPress={() => removeSlot(index)} variant="secondary" />
+          <PrimaryButton title="Remove Slot" onPress={() => removeSlot(index)} variant="ghost" />
         </View>
       ))}
 
@@ -184,3 +179,68 @@ export default function DoctorFormScreen({ navigation, route }) {
     </ScreenContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  heroCard: {
+    backgroundColor: "#fffaf0",
+    borderRadius: 28,
+    padding: 22,
+    marginBottom: 18,
+    borderWidth: 1,
+    borderColor: "#f0dfb9"
+  },
+  heroEyebrow: {
+    color: "#a16207",
+    fontSize: 12,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 1.1,
+    marginBottom: 10
+  },
+  heroTitle: {
+    fontSize: 28,
+    lineHeight: 34,
+    fontWeight: "800",
+    color: "#21313a",
+    marginBottom: 10
+  },
+  heroText: {
+    color: "#6b7280",
+    fontSize: 15,
+    lineHeight: 22
+  },
+  panel: {
+    backgroundColor: "#fcfffe",
+    borderRadius: 26,
+    padding: 18,
+    marginBottom: 18,
+    borderWidth: 1,
+    borderColor: "#deeaef"
+  },
+  panelTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#17303b",
+    marginBottom: 12
+  },
+  sectionTitle: {
+    fontSize: 19,
+    fontWeight: "800",
+    color: "#17303b",
+    marginBottom: 12
+  },
+  slotCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: "#e0e9ee",
+    padding: 16,
+    marginBottom: 14
+  },
+  slotTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#21404a",
+    marginBottom: 10
+  }
+});

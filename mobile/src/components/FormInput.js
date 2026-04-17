@@ -18,6 +18,7 @@ export default function FormInput({
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
+        placeholderTextColor="#8aa0ad"
         multiline={multiline}
         editable={editable}
       />
@@ -28,32 +29,42 @@ export default function FormInput({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 14
+    marginBottom: 16
   },
   label: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "600",
-    marginBottom: 6,
-    color: "#1f2937"
+    marginBottom: 7,
+    color: "#38525b",
+    textTransform: "uppercase",
+    letterSpacing: 0.7
   },
   input: {
     borderWidth: 1,
-    borderColor: "#cbd5e1",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: "#ffffff"
+    borderColor: "#d3dee5",
+    borderRadius: 18,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    backgroundColor: "#ffffff",
+    fontSize: 16,
+    color: "#12303a",
+    shadowColor: "#9fb2bf",
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2
   },
   multilineInput: {
-    minHeight: 88,
+    minHeight: 104,
     textAlignVertical: "top"
   },
   inputError: {
     borderColor: "#dc2626"
   },
   errorText: {
-    marginTop: 4,
+    marginTop: 6,
     color: "#dc2626",
-    fontSize: 12
+    fontSize: 12,
+    paddingHorizontal: 4
   }
 });

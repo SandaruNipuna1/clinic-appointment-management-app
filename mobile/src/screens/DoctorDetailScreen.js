@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { Text } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 
 import InfoCard from "../components/InfoCard";
@@ -36,30 +36,38 @@ export default function DoctorDetailScreen({ navigation, route }) {
 
   return (
     <ScreenContainer>
-      <Text style={{ fontSize: 20, fontWeight: "700", marginBottom: 8 }}>Doctor details</Text>
+      <Text style={styles.screenTitle}>Doctor details</Text>
 
-      {error ? <Text style={{ color: "#dc2626", marginBottom: 12 }}>{error}</Text> : null}
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
       {doctor ? (
-        <InfoCard
-          title={doctor.name}
-          lines={[
-            `Specialization: ${doctor.specialization}`,
-            `Email: ${doctor.email}`,
-            `Phone: ${doctor.phone}`,
-            `Experience: ${doctor.experience || 0} years`,
-            `Bio: ${doctor.bio || "-"}`
-          ]}
-        >
-          <Text style={{ fontSize: 15, fontWeight: "700", marginTop: 10, marginBottom: 8 }}>Availability</Text>
+        <InfoCard title={doctor.name} lines={[`Specialization: ${doctor.specialization}`, `Email: ${doctor.email}`]}>
+          <View style={styles.dataGrid}>
+            <View style={styles.dataChip}>
+              <Text style={styles.dataLabel}>Phone</Text>
+              <Text style={styles.dataValue}>{doctor.phone}</Text>
+            </View>
+            <View style={styles.dataChip}>
+              <Text style={styles.dataLabel}>Experience</Text>
+              <Text style={styles.dataValue}>{doctor.experience || 0} years</Text>
+            </View>
+          </View>
+          <View style={styles.bioCard}>
+            <Text style={styles.bioLabel}>Professional bio</Text>
+            <Text style={styles.bioText}>{doctor.bio || "No biography added yet."}</Text>
+          </View>
+          <Text style={styles.availabilityTitle}>Availability</Text>
           {doctor.availability?.length ? (
             doctor.availability.map((slot, index) => (
-              <Text key={`${doctor._id}-slot-${index}`} style={{ color: "#334155", marginBottom: 4 }}>
-                {slot.day}: {slot.startTime} - {slot.endTime}
-              </Text>
+              <View key={`${doctor._id}-slot-${index}`} style={styles.slotRow}>
+                <Text style={styles.slotDay}>{slot.day}</Text>
+                <Text style={styles.slotTime}>
+                  {slot.startTime} - {slot.endTime}
+                </Text>
+              </View>
             ))
           ) : (
-            <Text style={{ color: "#64748b", marginBottom: 8 }}>No availability configured.</Text>
+            <Text style={styles.emptyText}>No availability configured.</Text>
           )}
           {session.role === "admin" ? (
             <PrimaryButton
@@ -70,7 +78,7 @@ export default function DoctorDetailScreen({ navigation, route }) {
           ) : null}
         </InfoCard>
       ) : (
-        <Text style={{ color: "#475569" }}>Loading doctor profile...</Text>
+        <Text style={styles.loadingText}>Loading doctor profile...</Text>
       )}
 
       <PrimaryButton
@@ -81,3 +89,86 @@ export default function DoctorDetailScreen({ navigation, route }) {
     </ScreenContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  screenTitle: {
+    fontSize: 28,
+    fontWeight: "800",
+    color: "#17303b",
+    marginBottom: 12
+  },
+  errorText: {
+    color: "#dc2626",
+    marginBottom: 12
+  },
+  dataGrid: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 14
+  },
+  dataChip: {
+    flex: 1,
+    backgroundColor: "#f2f8f9",
+    borderRadius: 16,
+    padding: 12
+  },
+  dataLabel: {
+    color: "#64808a",
+    fontSize: 12,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+    marginBottom: 6
+  },
+  dataValue: {
+    color: "#16333d",
+    fontSize: 15,
+    fontWeight: "700"
+  },
+  bioCard: {
+    backgroundColor: "#fffaf0",
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 14
+  },
+  bioLabel: {
+    color: "#9a6700",
+    fontSize: 12,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+    marginBottom: 6
+  },
+  bioText: {
+    color: "#53636b",
+    lineHeight: 21
+  },
+  availabilityTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#17303b",
+    marginBottom: 10
+  },
+  slotRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#edf2f5"
+  },
+  slotDay: {
+    color: "#1f4450",
+    fontWeight: "700"
+  },
+  slotTime: {
+    color: "#58707a"
+  },
+  emptyText: {
+    color: "#64748b",
+    marginBottom: 10
+  },
+  loadingText: {
+    color: "#475569"
+  }
+});

@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { Text } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 
 import InfoCard from "../components/InfoCard";
@@ -50,30 +50,29 @@ export default function PatientRecordsHistoryScreen({ navigation }) {
 
   return (
     <ScreenContainer>
-      <Text style={{ fontSize: 20, fontWeight: "700", marginBottom: 8 }}>My records and reports</Text>
-      <Text style={{ color: "#475569", marginBottom: 16 }}>
-        Signed in as patient: {session.userId}
-      </Text>
+      <View style={styles.heroCard}>
+        <Text style={styles.heroEyebrow}>Patient View</Text>
+        <Text style={styles.heroTitle}>My records and reports</Text>
+        <Text style={styles.heroText}>Signed in as patient: {session.userId}</Text>
+      </View>
 
-      {error ? <Text style={{ color: "#dc2626", marginBottom: 12 }}>{error}</Text> : null}
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-      <PrimaryButton title="Refresh History" onPress={loadHistory} variant="secondary" />
-      <PrimaryButton title="Browse Doctors" onPress={() => navigation.navigate("Doctors")} variant="secondary" />
-      <PrimaryButton
-        title="Go To Session Setup"
-        onPress={() => navigation.navigate("SessionSetup")}
-        variant="secondary"
-      />
-      <PrimaryButton
-        title="Clear Session"
-        onPress={async () => {
-          await clearSession();
-          navigation.reset({ index: 0, routes: [{ name: "SessionSetup" }] });
-        }}
-        variant="secondary"
-      />
+      <View style={styles.actionsWrap}>
+        <PrimaryButton title="Refresh History" onPress={loadHistory} variant="secondary" />
+        <PrimaryButton title="Browse Doctors" onPress={() => navigation.navigate("Doctors")} variant="ghost" />
+        <PrimaryButton title="Session Setup" onPress={() => navigation.navigate("SessionSetup")} variant="ghost" />
+        <PrimaryButton
+          title="Reset Demo Session"
+          onPress={async () => {
+            await clearSession();
+            navigation.reset({ index: 0, routes: [{ name: "PatientHistory" }] });
+          }}
+          variant="ghost"
+        />
+      </View>
 
-      <Text style={{ fontSize: 17, fontWeight: "700", marginVertical: 12 }}>Medical Records</Text>
+      <Text style={styles.sectionTitle}>Medical Records</Text>
       {records.map((record) => (
         <InfoCard
           key={record._id}
@@ -87,7 +86,7 @@ export default function PatientRecordsHistoryScreen({ navigation }) {
         />
       ))}
 
-      <Text style={{ fontSize: 17, fontWeight: "700", marginVertical: 12 }}>Prescriptions</Text>
+      <Text style={styles.sectionTitle}>Prescriptions</Text>
       {prescriptions.map((prescription) => (
         <InfoCard
           key={prescription._id}
@@ -99,7 +98,7 @@ export default function PatientRecordsHistoryScreen({ navigation }) {
         />
       ))}
 
-      <Text style={{ fontSize: 17, fontWeight: "700", marginVertical: 12 }}>Reports</Text>
+      <Text style={styles.sectionTitle}>Reports</Text>
       {reports.map((report) => (
         <InfoCard
           key={report._id}
@@ -123,3 +122,47 @@ export default function PatientRecordsHistoryScreen({ navigation }) {
     </ScreenContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  heroCard: {
+    backgroundColor: "#fffdf7",
+    borderRadius: 28,
+    padding: 22,
+    marginBottom: 18,
+    borderWidth: 1,
+    borderColor: "#f0e6c8"
+  },
+  heroEyebrow: {
+    color: "#a16207",
+    fontSize: 12,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 1.2,
+    marginBottom: 10
+  },
+  heroTitle: {
+    fontSize: 28,
+    lineHeight: 34,
+    fontWeight: "800",
+    color: "#1c3139",
+    marginBottom: 8
+  },
+  heroText: {
+    color: "#687881",
+    fontSize: 15
+  },
+  errorText: {
+    color: "#dc2626",
+    marginBottom: 12
+  },
+  actionsWrap: {
+    marginBottom: 12
+  },
+  sectionTitle: {
+    fontSize: 19,
+    fontWeight: "800",
+    color: "#17303b",
+    marginTop: 10,
+    marginBottom: 12
+  }
+});
