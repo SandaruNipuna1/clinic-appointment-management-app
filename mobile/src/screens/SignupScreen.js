@@ -18,7 +18,19 @@ export default function SignupScreen() {
 
   const handleSignup = async () => {
     if (!fullName.trim() || !email.trim() || !password.trim()) {
-      Alert.alert("Missing fields", "Full name, email, and password are required.");
+      Alert.alert("Missing fields", "Please fill in all fields.");
+      return;
+    }
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailPattern.test(email.trim())) {
+      Alert.alert("Invalid email", "Please enter a valid email.");
+      return;
+    }
+
+    if (password.trim().length < 6) {
+      Alert.alert("Weak password", "Password must be at least 6 characters.");
       return;
     }
 

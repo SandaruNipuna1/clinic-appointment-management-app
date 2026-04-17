@@ -13,6 +13,18 @@ export default function LoginScreen({ navigation }) {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
+    if (!email.trim() || !password.trim()) {
+      Alert.alert("Missing fields", "Please fill in all fields.");
+      return;
+    }
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailPattern.test(email.trim())) {
+      Alert.alert("Invalid email", "Please enter a valid email.");
+      return;
+    }
+
     try {
       await login({ email, password });
     } catch (error) {

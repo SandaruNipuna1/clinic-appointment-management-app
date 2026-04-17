@@ -36,9 +36,14 @@ const login = asyncHandler(async (req, res) => {
   const normalizedEmail = req.body.email.trim().toLowerCase();
   const user = await User.findOne({ email: normalizedEmail });
 
-  if (!user || !verifyPassword(req.body.password, user.passwordHash)) {
+  if (!user) {
+    res.status(404);
+    throw new Error("No account found for this email");
+  }
+
+  if (!verifyPassword(req.body.password, user.passwordHash)) {
     res.status(401);
-    throw new Error("Invalid email or password");
+    throw new Error("Incorrect password");
   }
 
   res.status(200).json({
