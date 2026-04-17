@@ -34,6 +34,7 @@ export default function AppNavigator() {
         initialRouteName={currentUser ? "Home" : "Login"}
         screenOptions={{
           headerLargeTitle: false,
+          headerBackTitleVisible: false,
           headerShadowVisible: false,
           headerStyle: {
             backgroundColor: "#f3f8fb"
@@ -46,7 +47,7 @@ export default function AppNavigator() {
       >
         {currentUser ? (
           <>
-            <Stack.Screen name="Home" component={HomeDashboardScreen} options={{ title: "Clinic Management App" }} />
+            <Stack.Screen name="Home" component={HomeDashboardScreen} options={{ title: "Home" }} />
             <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: "Profile" }} />
             <Stack.Screen name="DoctorList" component={DoctorListScreen} options={{ title: "Doctor Management" }} />
             <Stack.Screen name="DoctorForm" component={DoctorManagementFormScreen} options={{ title: "Doctor Form" }} />

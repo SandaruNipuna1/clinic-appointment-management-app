@@ -18,9 +18,16 @@ export default function HomeDashboardScreen({ navigation }) {
   return (
     <ScreenContainer>
       <View style={styles.heroCard}>
+        <Text style={styles.eyebrow}>Clinic Management System</Text>
+        <Text style={styles.title}>Simple clinic management app</Text>
+        <Text style={styles.subtitle}>
+          Signed in as {currentUser?.fullName} ({currentUser?.role}). Use the modules below to manage doctors,
+          appointments, and medical reports.
+        </Text>
+
         <View style={styles.topActionRow}>
           <Pressable style={styles.topActionButton} onPress={() => navigation.navigate("Profile")}>
-            <Text style={styles.topActionLabel}>Profile</Text>
+            <Text style={styles.topActionLabel}>View Profile</Text>
           </Pressable>
           <Pressable
             style={[styles.topActionButton, styles.logoutButton]}
@@ -31,15 +38,9 @@ export default function HomeDashboardScreen({ navigation }) {
               ])
             }
           >
-            <Text style={[styles.topActionLabel, styles.logoutLabel]}>Logout</Text>
+            <Text style={[styles.topActionLabel, styles.logoutLabel]}>Sign Out</Text>
           </Pressable>
         </View>
-        <Text style={styles.eyebrow}>Clinic Management System</Text>
-        <Text style={styles.title}>Simple clinic management app</Text>
-        <Text style={styles.subtitle}>
-          Signed in as {currentUser?.fullName} ({currentUser?.role}). Use the modules below to manage doctors,
-          appointments, and medical reports.
-        </Text>
         <View style={styles.metricRow}>
           <View style={styles.metricCard}>
             <Text style={styles.metricValue}>{doctors.length}</Text>
@@ -47,7 +48,7 @@ export default function HomeDashboardScreen({ navigation }) {
           </View>
           <View style={styles.metricCard}>
             <Text style={styles.metricValue}>{appointments.length}</Text>
-            <Text style={styles.metricLabel}>Appointments</Text>
+            <Text style={styles.metricLabel}>Appts</Text>
           </View>
           <View style={styles.metricCard}>
             <Text style={styles.metricValue}>{reports.length}</Text>
@@ -111,23 +112,24 @@ const styles = StyleSheet.create({
   },
   topActionRow: {
     flexDirection: "row",
-    justifyContent: "flex-end",
+    justifyContent: "flex-start",
+    flexWrap: "wrap",
     gap: 10,
-    marginBottom: 14
+    marginBottom: 18
   },
   topActionButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 9,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     borderRadius: 999,
     backgroundColor: "#1c5561"
   },
   logoutButton: {
-    backgroundColor: "#f6d8d8"
+    backgroundColor: "#f8dada"
   },
   topActionLabel: {
     color: "#eafffb",
     fontWeight: "700",
-    fontSize: 13
+    fontSize: 14
   },
   logoutLabel: {
     color: "#8f1f1f"
@@ -161,18 +163,22 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#1a4c57",
     borderRadius: 18,
-    padding: 12
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    minHeight: 92,
+    justifyContent: "center"
   },
   metricValue: {
     color: "#ffffff",
     fontSize: 24,
-    fontWeight: "800"
+    fontWeight: "800",
+    textAlign: "center"
   },
   metricLabel: {
     color: "#c2dde1",
-    marginTop: 4,
-    fontSize: 12,
-    textTransform: "uppercase",
-    letterSpacing: 0.8
+    marginTop: 6,
+    fontSize: 11,
+    fontWeight: "700",
+    textAlign: "center"
   }
 });
