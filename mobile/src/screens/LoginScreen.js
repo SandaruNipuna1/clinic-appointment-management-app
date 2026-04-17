@@ -7,14 +7,15 @@ import ScreenContainer from "../components/ScreenContainer";
 import { useAuth } from "../context/AuthContext";
 
 export default function LoginScreen({ navigation }) {
-  const { login } = useAuth();
-  const [email, setEmail] = useState("admin@clinic.demo");
-  const [password, setPassword] = useState("admin123");
+  const { login, apiBaseUrl } = useAuth();
+  const [baseUrl, setBaseUrl] = useState(apiBaseUrl || "");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
     try {
-      await login({ email, password });
+      await login({ email, password, apiBaseUrl: baseUrl });
     } catch (error) {
       Alert.alert("Login failed", error.message);
     }
@@ -26,11 +27,12 @@ export default function LoginScreen({ navigation }) {
         <Text style={styles.eyebrow}>Welcome Back</Text>
         <Text style={styles.title}>Login to Clinic Management</Text>
         <Text style={styles.subtitle}>
-          Use a demo account or create your own to access role-based clinic modules.
+          Sign in with a registered account to access the role-based clinic modules.
         </Text>
       </View>
 
-      <FormInput label="Email" value={email} onChangeText={setEmail} placeholder="admin@clinic.demo" />
+      <FormInput label="API Base URL" value={baseUrl} onChangeText={setBaseUrl} placeholder="http://192.168.x.x:5001/api" />
+      <FormInput label="Email" value={email} onChangeText={setEmail} placeholder="name@example.com" />
       <FormInput
         label="Password"
         value={password}
@@ -43,13 +45,6 @@ export default function LoginScreen({ navigation }) {
 
       <PrimaryButton title="Login" onPress={handleLogin} />
       <PrimaryButton title="Create New Account" onPress={() => navigation.navigate("Signup")} variant="secondary" />
-
-      <View style={styles.demoCard}>
-        <Text style={styles.demoTitle}>Demo accounts</Text>
-        <Text style={styles.demoText}>Admin: `admin@clinic.demo` / `admin123`</Text>
-        <Text style={styles.demoText}>Receptionist: `reception@clinic.demo` / `reception123`</Text>
-        <Text style={styles.demoText}>Patient: `patient@clinic.demo` / `patient123`</Text>
-      </View>
     </ScreenContainer>
   );
 }
@@ -80,24 +75,5 @@ const styles = StyleSheet.create({
     color: "#c3dbe0",
     fontSize: 15,
     lineHeight: 22
-  },
-  demoCard: {
-    marginTop: 8,
-    backgroundColor: "#ffffff",
-    borderRadius: 24,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "#dde8ee"
-  },
-  demoTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: "#17303b",
-    marginBottom: 10
-  },
-  demoText: {
-    color: "#60757d",
-    marginBottom: 6,
-    lineHeight: 20
   }
 });

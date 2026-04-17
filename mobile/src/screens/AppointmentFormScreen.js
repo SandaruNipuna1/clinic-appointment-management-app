@@ -26,13 +26,13 @@ export default function AppointmentFormScreen({ navigation, route }) {
   const { currentUser } = useAuth();
   const appointmentId = route.params?.appointmentId;
   const existingAppointment = useMemo(
-    () => appointments.find((appointment) => appointment.id === appointmentId),
+    () => appointments.find((appointment) => appointment.rawId === appointmentId),
     [appointments, appointmentId]
   );
   const [values, setValues] = useState({
     id: existingAppointment?.id || "",
     patientName: existingAppointment?.patientName || "",
-    doctorId: existingAppointment?.doctorId || doctors[0]?.id || "",
+    doctorId: existingAppointment?.doctorId || doctors[0]?.rawId || "",
     date: existingAppointment?.date || "",
     time: existingAppointment?.time || "",
     reason: existingAppointment?.reason || "",
@@ -40,7 +40,7 @@ export default function AppointmentFormScreen({ navigation, route }) {
   });
   const [errors, setErrors] = useState({});
 
-  const selectedDoctorName = doctors.find((doctor) => doctor.id === values.doctorId)?.name || "";
+  const selectedDoctorName = doctors.find((doctor) => doctor.rawId === values.doctorId)?.name || "";
 
   const handleChange = (field, value) => {
     setValues((current) => ({ ...current, [field]: value }));
@@ -54,18 +54,23 @@ export default function AppointmentFormScreen({ navigation, route }) {
       return;
     }
 
-    await upsertAppointment({
-      ...values,
-      patientName: values.patientName.trim(),
-      doctorName: selectedDoctorName,
-      date: values.date.trim(),
-      time: values.time.trim(),
-      reason: values.reason.trim(),
-      status: values.status.trim()
-    });
+    try {
+      await upsertAppointment({
+        ...values,
+        rawId: existingAppointment?.rawId,
+        patientName: values.patientName.trim(),
+        doctorName: selectedDoctorName,
+        date: values.date.trim(),
+        time: values.time.trim(),
+        reason: values.reason.trim(),
+        status: values.status.trim()
+      });
 
-    Alert.alert("Saved", existingAppointment ? "Appointment updated." : "Appointment created.");
-    navigation.goBack();
+      Alert.alert("Saved", existingAppointment ? "Appointment updated." : "Appointment created.");
+      navigation.goBack();
+    } catch (error) {
+      Alert.alert("Save failed", error.message);
+    }
   };
 
   if (!["admin", "receptionist"].includes(currentUser?.role)) {
@@ -98,10 +103,10 @@ export default function AppointmentFormScreen({ navigation, route }) {
         <View style={styles.filterWrap}>
           {doctors.map((doctor) => (
             <PrimaryButton
-              key={doctor.id}
+              key={doctor.rawId}
               title={doctor.name}
-              onPress={() => handleChange("doctorId", doctor.id)}
-              variant={values.doctorId === doctor.id ? "primary" : "ghost"}
+              onPress={() => handleChange("doctorId", doctor.rawId)}
+              variant={values.doctorId === doctor.rawId ? "primary" : "ghost"}
             />
           ))}
         </View>

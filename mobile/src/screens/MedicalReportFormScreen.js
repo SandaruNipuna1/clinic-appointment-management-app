@@ -23,7 +23,7 @@ export default function MedicalReportFormScreen({ navigation, route }) {
   const { reports, upsertReport } = useAppData();
   const { currentUser } = useAuth();
   const reportId = route.params?.reportId;
-  const existingReport = useMemo(() => reports.find((report) => report.id === reportId), [reports, reportId]);
+  const existingReport = useMemo(() => reports.find((report) => report.rawId === reportId), [reports, reportId]);
   const [values, setValues] = useState({
     id: existingReport?.id || "",
     patientName: existingReport?.patientName || "",
@@ -49,20 +49,25 @@ export default function MedicalReportFormScreen({ navigation, route }) {
       return;
     }
 
-    await upsertReport({
-      ...values,
-      patientName: values.patientName.trim(),
-      doctorName: values.doctorName.trim(),
-      diagnosis: values.diagnosis.trim(),
-      symptoms: values.symptoms.trim(),
-      treatment: values.treatment.trim(),
-      prescriptionNote: values.prescriptionNote.trim(),
-      reportDate: values.reportDate.trim(),
-      additionalNotes: values.additionalNotes.trim()
-    });
+    try {
+      await upsertReport({
+        ...values,
+        rawId: existingReport?.rawId,
+        patientName: values.patientName.trim(),
+        doctorName: values.doctorName.trim(),
+        diagnosis: values.diagnosis.trim(),
+        symptoms: values.symptoms.trim(),
+        treatment: values.treatment.trim(),
+        prescriptionNote: values.prescriptionNote.trim(),
+        reportDate: values.reportDate.trim(),
+        additionalNotes: values.additionalNotes.trim()
+      });
 
-    Alert.alert("Saved", existingReport ? "Medical report updated." : "Medical report created.");
-    navigation.goBack();
+      Alert.alert("Saved", existingReport ? "Medical report updated." : "Medical report created.");
+      navigation.goBack();
+    } catch (error) {
+      Alert.alert("Save failed", error.message);
+    }
   };
 
   if (currentUser?.role !== "admin") {

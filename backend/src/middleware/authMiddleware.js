@@ -36,6 +36,15 @@ const adminOnly = (req, res, next) => {
   next();
 };
 
+const adminOrReceptionist = (req, res, next) => {
+  if (!req.user || !["admin", "receptionist"].includes(req.user.role)) {
+    res.status(403);
+    throw new Error("Access denied. Admin or receptionist only");
+  }
+
+  next();
+};
+
 const patientOnly = (req, res, next) => {
   if (!req.user || req.user.role !== "patient") {
     res.status(403);
@@ -48,5 +57,6 @@ const patientOnly = (req, res, next) => {
 module.exports = {
   protect,
   adminOnly,
+  adminOrReceptionist,
   patientOnly
 };

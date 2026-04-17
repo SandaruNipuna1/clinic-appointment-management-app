@@ -34,7 +34,7 @@ export default function HomeDashboardScreen({ navigation }) {
             <Text style={[styles.topActionLabel, styles.logoutLabel]}>Logout</Text>
           </Pressable>
         </View>
-        <Text style={styles.eyebrow}>Clinic Frontend Demo</Text>
+        <Text style={styles.eyebrow}>MongoDB Connected Workspace</Text>
         <Text style={styles.title}>Integrated clinic management workspace</Text>
         <Text style={styles.subtitle}>
           Signed in as {currentUser?.fullName} ({currentUser?.role}). Explore the modules available for this role.
@@ -91,7 +91,7 @@ export default function HomeDashboardScreen({ navigation }) {
         </InfoCard>
       ) : null}
 
-      {currentUser?.role === "admin" ? <PrimaryButton title="Reset Demo Data" onPress={resetDemoData} variant="ghost" /> : null}
+      {currentUser?.role === "admin" ? <PrimaryButton title="Refresh Data" onPress={resetDemoData} variant="ghost" /> : null}
     </ScreenContainer>
   );
 }

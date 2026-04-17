@@ -7,12 +7,17 @@ export async function apiRequest({ baseUrl, token, endpoint, method = "GET", bod
     });
   }
 
+  const headers = {
+    "Content-Type": "application/json"
+  };
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
   const response = await fetch(`${baseUrl}${endpoint}`, {
     method,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`
-    },
+    headers,
     body: body ? JSON.stringify(body) : undefined
   });
 
