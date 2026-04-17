@@ -8,7 +8,7 @@ import { useAppData } from "../context/AppDataContext";
 
 export default function DoctorDetailsScreen({ navigation, route }) {
   const { doctors } = useAppData();
-  const doctor = useMemo(() => doctors.find((item) => item.id === route.params?.doctorId), [doctors, route.params?.doctorId]);
+  const doctor = useMemo(() => doctors.find((item) => item.rawId === route.params?.doctorId), [doctors, route.params?.doctorId]);
 
   if (!doctor) {
     return (
@@ -44,7 +44,7 @@ export default function DoctorDetailsScreen({ navigation, route }) {
           </View>
         </View>
       </InfoCard>
-      <PrimaryButton title="Edit Doctor" onPress={() => navigation.navigate("DoctorForm", { doctorId: doctor.id })} />
+      <PrimaryButton title="Edit Doctor" onPress={() => navigation.navigate("DoctorForm", { doctorId: doctor.rawId })} />
       <PrimaryButton title="Back to Doctors" onPress={() => navigation.goBack()} variant="ghost" />
     </ScreenContainer>
   );

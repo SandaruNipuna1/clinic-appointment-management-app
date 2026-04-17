@@ -9,7 +9,8 @@ import { useAuth } from "../context/AuthContext";
 const ROLE_OPTIONS = ["patient", "receptionist", "admin"];
 
 export default function SignupScreen() {
-  const { signup } = useAuth();
+  const { signup, apiBaseUrl } = useAuth();
+  const [baseUrl, setBaseUrl] = useState(apiBaseUrl || "");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,7 +24,7 @@ export default function SignupScreen() {
     }
 
     try {
-      await signup({ fullName, email, password, role });
+      await signup({ fullName, email, password, role, apiBaseUrl: baseUrl });
     } catch (error) {
       Alert.alert("Signup failed", error.message);
     }
@@ -34,6 +35,7 @@ export default function SignupScreen() {
       <Text style={styles.title}>Create account</Text>
       <Text style={styles.subtitle}>Register a new profile and choose the role-based experience you want to demo.</Text>
 
+      <FormInput label="API Base URL" value={baseUrl} onChangeText={setBaseUrl} placeholder="http://192.168.x.x:5001/api" />
       <FormInput label="Full Name" value={fullName} onChangeText={setFullName} />
       <FormInput label="Email" value={email} onChangeText={setEmail} />
       <FormInput

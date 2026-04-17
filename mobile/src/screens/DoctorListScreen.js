@@ -8,14 +8,16 @@ import ScreenContainer from "../components/ScreenContainer";
 import { useAppData } from "../context/AppDataContext";
 import { useAuth } from "../context/AuthContext";
 
-const SPECIALIZATION_OPTIONS = ["All", "Cardiology", "Pediatrics", "Dermatology", "Neurology", "General Medicine"];
-
 export default function DoctorListScreen({ navigation }) {
   const { doctors, deleteDoctor } = useAppData();
   const { currentUser } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [specializationFilter, setSpecializationFilter] = useState("All");
   const canEditDoctors = ["admin", "receptionist"].includes(currentUser?.role);
+  const specializationOptions = useMemo(
+    () => ["All", ...Array.from(new Set(doctors.map((doctor) => doctor.specialization))).sort()],
+    [doctors]
+  );
 
   const filteredDoctors = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -38,7 +40,13 @@ export default function DoctorListScreen({ navigation }) {
       {
         text: "Delete",
         style: "destructive",
-        onPress: () => deleteDoctor(doctor.id)
+        onPress: async () => {
+          try {
+            await deleteDoctor(doctor.rawId);
+          } catch (error) {
+            Alert.alert("Delete failed", error.message);
+          }
+        }
       }
     ]);
   };
@@ -57,7 +65,7 @@ export default function DoctorListScreen({ navigation }) {
         />
         <Text style={styles.filterLabel}>Filter by specialization</Text>
         <View style={styles.filterWrap}>
-          {SPECIALIZATION_OPTIONS.map((option) => (
+          {specializationOptions.map((option) => (
             <PrimaryButton
               key={option}
               title={option}
@@ -82,11 +90,11 @@ export default function DoctorListScreen({ navigation }) {
             `Location: ${doctor.roomNumber || doctor.department || "-"}`
           ]}
         >
-          <PrimaryButton title="View Details" onPress={() => navigation.navigate("DoctorDetail", { doctorId: doctor.id })} />
+          <PrimaryButton title="View Details" onPress={() => navigation.navigate("DoctorDetail", { doctorId: doctor.rawId })} />
           {canEditDoctors ? (
             <PrimaryButton
               title="Edit Doctor"
-              onPress={() => navigation.navigate("DoctorForm", { doctorId: doctor.id })}
+              onPress={() => navigation.navigate("DoctorForm", { doctorId: doctor.rawId })}
               variant="secondary"
             />
           ) : null}

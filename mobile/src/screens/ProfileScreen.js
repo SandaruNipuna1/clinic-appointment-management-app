@@ -18,8 +18,12 @@ export default function ProfileScreen() {
       return;
     }
 
-    await updateProfile({ fullName, email });
-    Alert.alert("Saved", "Profile updated successfully.");
+    try {
+      await updateProfile({ fullName, email });
+      Alert.alert("Saved", "Profile updated successfully.");
+    } catch (error) {
+      Alert.alert("Save failed", error.message);
+    }
   };
 
   return (
