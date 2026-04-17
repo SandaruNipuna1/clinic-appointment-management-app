@@ -1,17 +1,19 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { DEMO_SESSION } from "../config/demoSession";
 
 const STORAGE_KEY = "clinic_module_session";
+const EMPTY_SESSION = {
+  apiBaseUrl: "",
+  token: "",
+  role: "admin",
+  userId: ""
+};
 
 const SessionContext = createContext(null);
 
 export function SessionProvider({ children }) {
-  const [session, setSession] = useState({
-    apiBaseUrl: "",
-    token: "",
-    role: "admin",
-    userId: ""
-  });
+  const [session, setSession] = useState(DEMO_SESSION);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
@@ -20,6 +22,9 @@ export function SessionProvider({ children }) {
         const saved = await AsyncStorage.getItem(STORAGE_KEY);
         if (saved) {
           setSession(JSON.parse(saved));
+        } else {
+          setSession(DEMO_SESSION);
+          await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(DEMO_SESSION));
         }
       } finally {
         setIsReady(true);
@@ -35,13 +40,12 @@ export function SessionProvider({ children }) {
   };
 
   const clearSession = async () => {
-    const emptySession = {
-      apiBaseUrl: "",
-      token: "",
-      role: "admin",
-      userId: ""
-    };
-    setSession(emptySession);
+    setSession(DEMO_SESSION);
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(DEMO_SESSION));
+  };
+
+  const disableSession = async () => {
+    setSession(EMPTY_SESSION);
     await AsyncStorage.removeItem(STORAGE_KEY);
   };
 
@@ -50,7 +54,8 @@ export function SessionProvider({ children }) {
       session,
       isReady,
       saveSession,
-      clearSession
+      clearSession,
+      disableSession
     }),
     [session, isReady]
   );

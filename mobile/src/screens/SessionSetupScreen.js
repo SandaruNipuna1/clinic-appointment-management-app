@@ -4,16 +4,17 @@ import { Alert, Text } from "react-native";
 import FormInput from "../components/FormInput";
 import PrimaryButton from "../components/PrimaryButton";
 import ScreenContainer from "../components/ScreenContainer";
+import { DEMO_SESSION } from "../config/demoSession";
 import { useSession } from "../context/SessionContext";
 import { validateSession } from "../utils/validation";
 
 export default function SessionSetupScreen({ navigation }) {
-  const { saveSession } = useSession();
+  const { saveSession, clearSession } = useSession();
   const [values, setValues] = useState({
-    apiBaseUrl: "http://10.0.2.2:5000/api",
-    token: "",
-    role: "admin",
-    userId: ""
+    apiBaseUrl: DEMO_SESSION.apiBaseUrl,
+    token: DEMO_SESSION.token,
+    role: DEMO_SESSION.role,
+    userId: DEMO_SESSION.userId
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -48,7 +49,7 @@ export default function SessionSetupScreen({ navigation }) {
     <ScreenContainer>
       <Text style={{ fontSize: 18, fontWeight: "700", marginBottom: 8 }}>Temporary test setup</Text>
       <Text style={{ marginBottom: 16, color: "#475569" }}>
-        Paste the API base URL and a valid JWT from your existing auth module so these screens can call the backend.
+        The demo app auto-loads an admin session. Use this screen only if you want to override the demo URL or token.
       </Text>
       <FormInput
         label="API Base URL"
@@ -77,6 +78,17 @@ export default function SessionSetupScreen({ navigation }) {
         error={errors.userId}
       />
       <PrimaryButton title="Save Session" onPress={handleSave} loading={loading} />
+      <PrimaryButton
+        title="Reset Demo Session"
+        onPress={async () => {
+          await clearSession();
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "AdminMedicalRecords" }]
+          });
+        }}
+        variant="secondary"
+      />
     </ScreenContainer>
   );
 }
