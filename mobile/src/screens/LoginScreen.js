@@ -37,7 +37,7 @@ export default function LoginScreen({ navigation }) {
         onChangeText={setPassword}
         placeholder="Enter password"
         secureTextEntry={!showPassword}
-        rightActionLabel={showPassword ? "🙈" : "👁"}
+        rightActionLabel={showPassword ? "Hide" : "Show"}
         onRightActionPress={() => setShowPassword((current) => !current)}
       />
 

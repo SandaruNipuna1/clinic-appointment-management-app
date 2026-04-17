@@ -41,7 +41,7 @@ export default function SignupScreen() {
         value={password}
         onChangeText={setPassword}
         secureTextEntry={!showPassword}
-        rightActionLabel={showPassword ? "🙈" : "👁"}
+        rightActionLabel={showPassword ? "Hide" : "Show"}
         onRightActionPress={() => setShowPassword((current) => !current)}
       />
 

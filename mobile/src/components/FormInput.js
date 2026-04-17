@@ -84,8 +84,11 @@ const styles = StyleSheet.create({
     justifyContent: "center"
   },
   actionLabel: {
-    fontSize: 18,
-    color: "#45606a"
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#45606a",
+    textTransform: "uppercase",
+    letterSpacing: 0.7
   },
   inputError: {
     borderColor: "#dc2626"
