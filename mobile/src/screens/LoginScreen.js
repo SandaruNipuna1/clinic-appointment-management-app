@@ -10,6 +10,7 @@ export default function LoginScreen({ navigation }) {
   const { login } = useAuth();
   const [email, setEmail] = useState("admin@clinic.demo");
   const [password, setPassword] = useState("admin123");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
     try {
@@ -30,7 +31,15 @@ export default function LoginScreen({ navigation }) {
       </View>
 
       <FormInput label="Email" value={email} onChangeText={setEmail} placeholder="admin@clinic.demo" />
-      <FormInput label="Password" value={password} onChangeText={setPassword} placeholder="Enter password" />
+      <FormInput
+        label="Password"
+        value={password}
+        onChangeText={setPassword}
+        placeholder="Enter password"
+        secureTextEntry={!showPassword}
+        rightActionLabel={showPassword ? "🙈" : "👁"}
+        onRightActionPress={() => setShowPassword((current) => !current)}
+      />
 
       <PrimaryButton title="Login" onPress={handleLogin} />
       <PrimaryButton title="Create New Account" onPress={() => navigation.navigate("Signup")} variant="secondary" />

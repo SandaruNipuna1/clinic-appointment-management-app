@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 export default function FormInput({
   label,
@@ -8,20 +8,31 @@ export default function FormInput({
   placeholder,
   error,
   multiline = false,
-  editable = true
+  editable = true,
+  secureTextEntry = false,
+  rightActionLabel,
+  onRightActionPress
 }) {
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
-      <TextInput
-        style={[styles.input, multiline && styles.multilineInput, error && styles.inputError]}
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor="#8aa0ad"
-        multiline={multiline}
-        editable={editable}
-      />
+      <View style={styles.inputWrap}>
+        <TextInput
+          style={[styles.input, multiline && styles.multilineInput, error && styles.inputError, rightActionLabel && styles.inputWithAction]}
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={placeholder}
+          placeholderTextColor="#8aa0ad"
+          multiline={multiline}
+          editable={editable}
+          secureTextEntry={secureTextEntry}
+        />
+        {rightActionLabel ? (
+          <Pressable style={styles.actionButton} onPress={onRightActionPress}>
+            <Text style={styles.actionLabel}>{rightActionLabel}</Text>
+          </Pressable>
+        ) : null}
+      </View>
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
     </View>
   );
@@ -54,9 +65,27 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     elevation: 2
   },
+  inputWrap: {
+    position: "relative",
+    justifyContent: "center"
+  },
+  inputWithAction: {
+    paddingRight: 70
+  },
   multilineInput: {
     minHeight: 104,
     textAlignVertical: "top"
+  },
+  actionButton: {
+    position: "absolute",
+    right: 14,
+    top: 0,
+    bottom: 0,
+    justifyContent: "center"
+  },
+  actionLabel: {
+    fontSize: 18,
+    color: "#45606a"
   },
   inputError: {
     borderColor: "#dc2626"

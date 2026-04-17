@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 import InfoCard from "../components/InfoCard";
 import PrimaryButton from "../components/PrimaryButton";
@@ -9,7 +9,7 @@ import { useAuth } from "../context/AuthContext";
 
 export default function HomeDashboardScreen({ navigation }) {
   const { doctors, appointments, reports, resetDemoData } = useAppData();
-  const { currentUser } = useAuth();
+  const { currentUser, logout } = useAuth();
 
   const canManageDoctors = ["admin", "receptionist"].includes(currentUser?.role);
   const canManageAppointments = ["admin", "receptionist", "patient"].includes(currentUser?.role);
@@ -18,6 +18,22 @@ export default function HomeDashboardScreen({ navigation }) {
   return (
     <ScreenContainer>
       <View style={styles.heroCard}>
+        <View style={styles.topActionRow}>
+          <Pressable style={styles.topActionButton} onPress={() => navigation.navigate("Profile")}>
+            <Text style={styles.topActionLabel}>Profile</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.topActionButton, styles.logoutButton]}
+            onPress={() =>
+              Alert.alert("Logout", "Do you want to sign out now?", [
+                { text: "Cancel", style: "cancel" },
+                { text: "Logout", style: "destructive", onPress: () => logout() }
+              ])
+            }
+          >
+            <Text style={[styles.topActionLabel, styles.logoutLabel]}>Logout</Text>
+          </Pressable>
+        </View>
         <Text style={styles.eyebrow}>Clinic Frontend Demo</Text>
         <Text style={styles.title}>Integrated clinic management workspace</Text>
         <Text style={styles.subtitle}>
@@ -75,7 +91,6 @@ export default function HomeDashboardScreen({ navigation }) {
         </InfoCard>
       ) : null}
 
-      <PrimaryButton title="Open Profile" onPress={() => navigation.navigate("Profile")} variant="secondary" />
       {currentUser?.role === "admin" ? <PrimaryButton title="Reset Demo Data" onPress={resetDemoData} variant="ghost" /> : null}
     </ScreenContainer>
   );
@@ -92,6 +107,29 @@ const styles = StyleSheet.create({
     shadowRadius: 24,
     shadowOffset: { width: 0, height: 14 },
     elevation: 6
+  },
+  topActionRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 10,
+    marginBottom: 14
+  },
+  topActionButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 999,
+    backgroundColor: "#1c5561"
+  },
+  logoutButton: {
+    backgroundColor: "#f6d8d8"
+  },
+  topActionLabel: {
+    color: "#eafffb",
+    fontWeight: "700",
+    fontSize: 13
+  },
+  logoutLabel: {
+    color: "#8f1f1f"
   },
   eyebrow: {
     color: "#8de4d3",

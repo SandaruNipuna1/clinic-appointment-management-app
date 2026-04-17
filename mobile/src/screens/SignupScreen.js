@@ -14,6 +14,7 @@ export default function SignupScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("patient");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSignup = async () => {
     if (!fullName.trim() || !email.trim() || !password.trim()) {
@@ -35,7 +36,14 @@ export default function SignupScreen() {
 
       <FormInput label="Full Name" value={fullName} onChangeText={setFullName} />
       <FormInput label="Email" value={email} onChangeText={setEmail} />
-      <FormInput label="Password" value={password} onChangeText={setPassword} />
+      <FormInput
+        label="Password"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry={!showPassword}
+        rightActionLabel={showPassword ? "🙈" : "👁"}
+        onRightActionPress={() => setShowPassword((current) => !current)}
+      />
 
       <Text style={styles.roleLabel}>Choose role</Text>
       <View style={styles.roleWrap}>
