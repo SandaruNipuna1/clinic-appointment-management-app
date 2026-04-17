@@ -5,6 +5,7 @@ import FormInput from "../components/FormInput";
 import PrimaryButton from "../components/PrimaryButton";
 import ScreenContainer from "../components/ScreenContainer";
 import { useAppData } from "../context/AppDataContext";
+import { useAuth } from "../context/AuthContext";
 
 const validateReport = (values) => {
   const errors = {};
@@ -20,6 +21,7 @@ const validateReport = (values) => {
 
 export default function MedicalReportFormScreen({ navigation, route }) {
   const { reports, upsertReport } = useAppData();
+  const { currentUser } = useAuth();
   const reportId = route.params?.reportId;
   const existingReport = useMemo(() => reports.find((report) => report.id === reportId), [reports, reportId]);
   const [values, setValues] = useState({
@@ -62,6 +64,16 @@ export default function MedicalReportFormScreen({ navigation, route }) {
     Alert.alert("Saved", existingReport ? "Medical report updated." : "Medical report created.");
     navigation.goBack();
   };
+
+  if (currentUser?.role !== "admin") {
+    return (
+      <ScreenContainer>
+        <Text style={styles.title}>Access denied</Text>
+        <Text style={styles.subtitle}>Only admin users can create or edit medical reports.</Text>
+        <PrimaryButton title="Back" onPress={() => navigation.goBack()} />
+      </ScreenContainer>
+    );
+  }
 
   return (
     <ScreenContainer>

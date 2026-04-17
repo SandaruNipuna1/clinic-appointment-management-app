@@ -5,6 +5,7 @@ import FormInput from "../components/FormInput";
 import PrimaryButton from "../components/PrimaryButton";
 import ScreenContainer from "../components/ScreenContainer";
 import { useAppData } from "../context/AppDataContext";
+import { useAuth } from "../context/AuthContext";
 
 const STATUS_OPTIONS = ["Scheduled", "Completed", "Cancelled"];
 
@@ -22,6 +23,7 @@ const validateAppointment = (values) => {
 
 export default function AppointmentFormScreen({ navigation, route }) {
   const { doctors, appointments, upsertAppointment } = useAppData();
+  const { currentUser } = useAuth();
   const appointmentId = route.params?.appointmentId;
   const existingAppointment = useMemo(
     () => appointments.find((appointment) => appointment.id === appointmentId),
@@ -65,6 +67,16 @@ export default function AppointmentFormScreen({ navigation, route }) {
     Alert.alert("Saved", existingAppointment ? "Appointment updated." : "Appointment created.");
     navigation.goBack();
   };
+
+  if (!["admin", "receptionist"].includes(currentUser?.role)) {
+    return (
+      <ScreenContainer>
+        <Text style={styles.title}>Access denied</Text>
+        <Text style={styles.subtitle}>Only admin and receptionist roles can create or edit appointments.</Text>
+        <PrimaryButton title="Back" onPress={() => navigation.goBack()} />
+      </ScreenContainer>
+    );
+  }
 
   return (
     <ScreenContainer>

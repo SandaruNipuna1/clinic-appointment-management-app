@@ -6,14 +6,17 @@ import InfoCard from "../components/InfoCard";
 import PrimaryButton from "../components/PrimaryButton";
 import ScreenContainer from "../components/ScreenContainer";
 import { useAppData } from "../context/AppDataContext";
+import { useAuth } from "../context/AuthContext";
 
 const STATUS_OPTIONS = ["All", "Scheduled", "Completed", "Cancelled"];
 
 export default function AppointmentListScreen({ navigation }) {
   const { appointments, deleteAppointment } = useAppData();
+  const { currentUser } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [dateFilter, setDateFilter] = useState("");
+  const canEditAppointments = ["admin", "receptionist"].includes(currentUser?.role);
 
   const filteredAppointments = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -67,7 +70,9 @@ export default function AppointmentListScreen({ navigation }) {
         </View>
       </View>
 
-      <PrimaryButton title="Create Appointment" onPress={() => navigation.navigate("AppointmentForm")} />
+      {canEditAppointments ? (
+        <PrimaryButton title="Create Appointment" onPress={() => navigation.navigate("AppointmentForm")} />
+      ) : null}
 
       {filteredAppointments.map((appointment) => (
         <InfoCard
@@ -104,12 +109,16 @@ export default function AppointmentListScreen({ navigation }) {
             title="View Details"
             onPress={() => navigation.navigate("AppointmentDetail", { appointmentId: appointment.id })}
           />
-          <PrimaryButton
-            title="Edit Appointment"
-            onPress={() => navigation.navigate("AppointmentForm", { appointmentId: appointment.id })}
-            variant="secondary"
-          />
-          <PrimaryButton title="Delete Appointment" onPress={() => handleDelete(appointment)} variant="ghost" />
+          {canEditAppointments ? (
+            <PrimaryButton
+              title="Edit Appointment"
+              onPress={() => navigation.navigate("AppointmentForm", { appointmentId: appointment.id })}
+              variant="secondary"
+            />
+          ) : null}
+          {canEditAppointments ? (
+            <PrimaryButton title="Delete Appointment" onPress={() => handleDelete(appointment)} variant="ghost" />
+          ) : null}
         </InfoCard>
       ))}
     </ScreenContainer>

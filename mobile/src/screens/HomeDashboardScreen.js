@@ -5,9 +5,15 @@ import InfoCard from "../components/InfoCard";
 import PrimaryButton from "../components/PrimaryButton";
 import ScreenContainer from "../components/ScreenContainer";
 import { useAppData } from "../context/AppDataContext";
+import { useAuth } from "../context/AuthContext";
 
 export default function HomeDashboardScreen({ navigation }) {
   const { doctors, appointments, reports, resetDemoData } = useAppData();
+  const { currentUser } = useAuth();
+
+  const canManageDoctors = ["admin", "receptionist"].includes(currentUser?.role);
+  const canManageAppointments = ["admin", "receptionist", "patient"].includes(currentUser?.role);
+  const canManageReports = ["admin", "patient"].includes(currentUser?.role);
 
   return (
     <ScreenContainer>
@@ -15,7 +21,7 @@ export default function HomeDashboardScreen({ navigation }) {
         <Text style={styles.eyebrow}>Clinic Frontend Demo</Text>
         <Text style={styles.title}>Integrated clinic management workspace</Text>
         <Text style={styles.subtitle}>
-          Explore Doctor Management, Appointment Management, and Medical Reports in one polished frontend demo.
+          Signed in as {currentUser?.fullName} ({currentUser?.role}). Explore the modules available for this role.
         </Text>
         <View style={styles.metricRow}>
           <View style={styles.metricCard}>
@@ -33,37 +39,44 @@ export default function HomeDashboardScreen({ navigation }) {
         </View>
       </View>
 
-      <InfoCard
-        title="Doctor Management"
-        lines={[
-          "View all doctors with quick search and specialization filtering.",
-          "Add, edit, delete, and open detail views for every doctor record."
-        ]}
-      >
-        <PrimaryButton title="Open Doctor Module" onPress={() => navigation.navigate("DoctorList")} />
-      </InfoCard>
+      {canManageDoctors ? (
+        <InfoCard
+          title="Doctor Management"
+          lines={[
+            "View all doctors with quick search and specialization filtering.",
+            "Add, edit, delete, and open detail views for every doctor record."
+          ]}
+        >
+          <PrimaryButton title="Open Doctor Module" onPress={() => navigation.navigate("DoctorList")} />
+        </InfoCard>
+      ) : null}
 
-      <InfoCard
-        title="Appointment Management"
-        lines={[
-          "Create and update appointments with patient, doctor, status, date, and time.",
-          "Search by patient or doctor and filter by date or status."
-        ]}
-      >
-        <PrimaryButton title="Open Appointment Module" onPress={() => navigation.navigate("AppointmentList")} />
-      </InfoCard>
+      {canManageAppointments ? (
+        <InfoCard
+          title="Appointment Management"
+          lines={[
+            "Create and update appointments with patient, doctor, status, date, and time.",
+            "Search by patient or doctor and filter by date or status."
+          ]}
+        >
+          <PrimaryButton title="Open Appointment Module" onPress={() => navigation.navigate("AppointmentList")} />
+        </InfoCard>
+      ) : null}
 
-      <InfoCard
-        title="Medical Reports"
-        lines={[
-          "Manage patient reports with diagnosis, symptoms, treatment, and notes.",
-          "Search by patient name or report ID and filter by doctor or date."
-        ]}
-      >
-        <PrimaryButton title="Open Medical Report Module" onPress={() => navigation.navigate("ReportList")} />
-      </InfoCard>
+      {canManageReports ? (
+        <InfoCard
+          title="Medical Reports"
+          lines={[
+            "Manage patient reports with diagnosis, symptoms, treatment, and notes.",
+            "Search by patient name or report ID and filter by doctor or date."
+          ]}
+        >
+          <PrimaryButton title="Open Medical Report Module" onPress={() => navigation.navigate("ReportList")} />
+        </InfoCard>
+      ) : null}
 
-      <PrimaryButton title="Reset Demo Data" onPress={resetDemoData} variant="ghost" />
+      <PrimaryButton title="Open Profile" onPress={() => navigation.navigate("Profile")} variant="secondary" />
+      {currentUser?.role === "admin" ? <PrimaryButton title="Reset Demo Data" onPress={resetDemoData} variant="ghost" /> : null}
     </ScreenContainer>
   );
 }

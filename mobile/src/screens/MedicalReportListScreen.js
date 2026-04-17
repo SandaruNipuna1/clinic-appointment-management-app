@@ -6,12 +6,15 @@ import InfoCard from "../components/InfoCard";
 import PrimaryButton from "../components/PrimaryButton";
 import ScreenContainer from "../components/ScreenContainer";
 import { useAppData } from "../context/AppDataContext";
+import { useAuth } from "../context/AuthContext";
 
 export default function MedicalReportListScreen({ navigation }) {
   const { reports, deleteReport } = useAppData();
+  const { currentUser } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [doctorFilter, setDoctorFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
+  const canEditReports = currentUser?.role === "admin";
 
   const filteredReports = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -60,7 +63,7 @@ export default function MedicalReportListScreen({ navigation }) {
         <FormInput label="Filter by date" value={dateFilter} onChangeText={setDateFilter} placeholder="YYYY-MM-DD" />
       </View>
 
-      <PrimaryButton title="Add Medical Report" onPress={() => navigation.navigate("ReportForm")} />
+      {canEditReports ? <PrimaryButton title="Add Medical Report" onPress={() => navigation.navigate("ReportForm")} /> : null}
 
       {filteredReports.map((report) => (
         <InfoCard
@@ -74,12 +77,14 @@ export default function MedicalReportListScreen({ navigation }) {
           ]}
         >
           <PrimaryButton title="View Report" onPress={() => navigation.navigate("ReportDetail", { reportId: report.id })} />
-          <PrimaryButton
-            title="Edit Report"
-            onPress={() => navigation.navigate("ReportForm", { reportId: report.id })}
-            variant="secondary"
-          />
-          <PrimaryButton title="Delete Report" onPress={() => handleDelete(report)} variant="ghost" />
+          {canEditReports ? (
+            <PrimaryButton
+              title="Edit Report"
+              onPress={() => navigation.navigate("ReportForm", { reportId: report.id })}
+              variant="secondary"
+            />
+          ) : null}
+          {canEditReports ? <PrimaryButton title="Delete Report" onPress={() => handleDelete(report)} variant="ghost" /> : null}
         </InfoCard>
       ))}
     </ScreenContainer>

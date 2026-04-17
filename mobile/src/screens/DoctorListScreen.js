@@ -6,13 +6,16 @@ import InfoCard from "../components/InfoCard";
 import PrimaryButton from "../components/PrimaryButton";
 import ScreenContainer from "../components/ScreenContainer";
 import { useAppData } from "../context/AppDataContext";
+import { useAuth } from "../context/AuthContext";
 
 const SPECIALIZATION_OPTIONS = ["All", "Cardiology", "Pediatrics", "Dermatology", "Neurology", "General Medicine"];
 
 export default function DoctorListScreen({ navigation }) {
   const { doctors, deleteDoctor } = useAppData();
+  const { currentUser } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [specializationFilter, setSpecializationFilter] = useState("All");
+  const canEditDoctors = ["admin", "receptionist"].includes(currentUser?.role);
 
   const filteredDoctors = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -65,7 +68,7 @@ export default function DoctorListScreen({ navigation }) {
         </View>
       </View>
 
-      <PrimaryButton title="Add New Doctor" onPress={() => navigation.navigate("DoctorForm")} />
+      {canEditDoctors ? <PrimaryButton title="Add New Doctor" onPress={() => navigation.navigate("DoctorForm")} /> : null}
 
       {filteredDoctors.map((doctor) => (
         <InfoCard
@@ -80,12 +83,16 @@ export default function DoctorListScreen({ navigation }) {
           ]}
         >
           <PrimaryButton title="View Details" onPress={() => navigation.navigate("DoctorDetail", { doctorId: doctor.id })} />
-          <PrimaryButton
-            title="Edit Doctor"
-            onPress={() => navigation.navigate("DoctorForm", { doctorId: doctor.id })}
-            variant="secondary"
-          />
-          <PrimaryButton title="Delete Doctor" onPress={() => handleDelete(doctor)} variant="ghost" />
+          {canEditDoctors ? (
+            <PrimaryButton
+              title="Edit Doctor"
+              onPress={() => navigation.navigate("DoctorForm", { doctorId: doctor.id })}
+              variant="secondary"
+            />
+          ) : null}
+          {currentUser?.role === "admin" ? (
+            <PrimaryButton title="Delete Doctor" onPress={() => handleDelete(doctor)} variant="ghost" />
+          ) : null}
         </InfoCard>
       ))}
     </ScreenContainer>

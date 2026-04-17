@@ -5,6 +5,7 @@ import FormInput from "../components/FormInput";
 import PrimaryButton from "../components/PrimaryButton";
 import ScreenContainer from "../components/ScreenContainer";
 import { useAppData } from "../context/AppDataContext";
+import { useAuth } from "../context/AuthContext";
 
 const validateDoctor = (values, doctors, currentId) => {
   const errors = {};
@@ -28,6 +29,7 @@ const validateDoctor = (values, doctors, currentId) => {
 
 export default function DoctorManagementFormScreen({ navigation, route }) {
   const { doctors, upsertDoctor } = useAppData();
+  const { currentUser } = useAuth();
   const doctorId = route.params?.doctorId;
   const existingDoctor = useMemo(() => doctors.find((doctor) => doctor.id === doctorId), [doctors, doctorId]);
   const [values, setValues] = useState({
@@ -68,6 +70,16 @@ export default function DoctorManagementFormScreen({ navigation, route }) {
     Alert.alert("Saved", existingDoctor ? "Doctor details updated." : "Doctor added successfully.");
     navigation.goBack();
   };
+
+  if (!["admin", "receptionist"].includes(currentUser?.role)) {
+    return (
+      <ScreenContainer>
+        <Text style={styles.title}>Access denied</Text>
+        <Text style={styles.subtitle}>Your role does not have permission to add or edit doctor records.</Text>
+        <PrimaryButton title="Back" onPress={() => navigation.goBack()} />
+      </ScreenContainer>
+    );
+  }
 
   return (
     <ScreenContainer>
