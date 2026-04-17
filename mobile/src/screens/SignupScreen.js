@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { Alert, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 import FormInput from "../components/FormInput";
-import PrimaryButton from "../components/PrimaryButton";
 import ScreenContainer from "../components/ScreenContainer";
 import { useAuth } from "../context/AuthContext";
+import PrimaryButton from "../components/PrimaryButton";
 
 const ROLE_OPTIONS = [
   {
@@ -100,14 +100,16 @@ export default function SignupScreen() {
       <Text style={styles.roleLabel}>Choose role</Text>
       <View style={styles.roleWrap}>
         {ROLE_OPTIONS.map((option) => (
-          <View key={option.value} style={styles.roleCard}>
-            <PrimaryButton
-              title={option.label}
-              onPress={() => setRole(option.value)}
-              variant={role === option.value ? "primary" : "ghost"}
-            />
-            <Text style={styles.roleDescription}>{option.description}</Text>
-          </View>
+          <Pressable
+            key={option.value}
+            style={[styles.roleCard, role === option.value && styles.roleCardActive]}
+            onPress={() => setRole(option.value)}
+          >
+            <Text style={[styles.roleTitle, role === option.value && styles.roleTitleActive]}>{option.label}</Text>
+            <Text style={[styles.roleDescription, role === option.value && styles.roleDescriptionActive]}>
+              {option.description}
+            </Text>
+          </Pressable>
         ))}
       </View>
 
@@ -139,14 +141,40 @@ const styles = StyleSheet.create({
   },
   roleWrap: {
     gap: 10,
-    marginBottom: 8
+    marginBottom: 14
   },
   roleCard: {
-    gap: 6
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#d6e4ea",
+    borderRadius: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    gap: 4
+  },
+  roleCardActive: {
+    backgroundColor: "#123b46",
+    borderColor: "#123b46",
+    shadowColor: "#123b46",
+    shadowOpacity: 0.16,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 4
+  },
+  roleTitle: {
+    color: "#17303b",
+    fontSize: 19,
+    fontWeight: "800"
+  },
+  roleTitleActive: {
+    color: "#f7fffe"
   },
   roleDescription: {
     color: "#60757d",
     fontSize: 13,
     lineHeight: 18
+  },
+  roleDescriptionActive: {
+    color: "#c8e1e5"
   }
 });
