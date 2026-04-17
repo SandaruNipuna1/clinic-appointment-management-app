@@ -5,6 +5,7 @@ const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 const medicalRecordRoutes = require("./routes/medicalRecordRoutes");
 const prescriptionRoutes = require("./routes/prescriptionRoutes");
 const reportRoutes = require("./routes/reportRoutes");
+const doctorRoutes = require("./routes/doctorRoutes");
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.get("/api/health", (req, res) => {
 app.use("/api/medical-records", medicalRecordRoutes);
 app.use("/api/prescriptions", prescriptionRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/doctors", doctorRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

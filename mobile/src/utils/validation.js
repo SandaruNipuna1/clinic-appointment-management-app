@@ -90,3 +90,49 @@ export function validateReport(values) {
 
   return errors;
 }
+
+export function validateDoctor(values) {
+  const errors = {};
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const timePattern = /^([01]\d|2[0-3]):([0-5]\d)$/;
+
+  if (!values.name.trim()) {
+    errors.name = "name is required";
+  }
+
+  if (!values.specialization.trim()) {
+    errors.specialization = "specialization is required";
+  }
+
+  if (!values.email.trim()) {
+    errors.email = "email is required";
+  } else if (!emailPattern.test(values.email.trim())) {
+    errors.email = "email must be valid";
+  }
+
+  if (!values.phone.trim()) {
+    errors.phone = "phone is required";
+  }
+
+  if (values.experience.trim() && Number.isNaN(Number(values.experience))) {
+    errors.experience = "experience must be a number";
+  }
+
+  values.availability.forEach((slot, index) => {
+    const prefix = `availability_${index}`;
+
+    if (!slot.day.trim()) {
+      errors[`${prefix}_day`] = "day is required";
+    }
+
+    if (!timePattern.test(slot.startTime.trim())) {
+      errors[`${prefix}_startTime`] = "start time must use HH:MM";
+    }
+
+    if (!timePattern.test(slot.endTime.trim())) {
+      errors[`${prefix}_endTime`] = "end time must use HH:MM";
+    }
+  });
+
+  return errors;
+}

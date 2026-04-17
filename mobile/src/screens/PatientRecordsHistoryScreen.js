@@ -58,6 +58,7 @@ export default function PatientRecordsHistoryScreen({ navigation }) {
       {error ? <Text style={{ color: "#dc2626", marginBottom: 12 }}>{error}</Text> : null}
 
       <PrimaryButton title="Refresh History" onPress={loadHistory} variant="secondary" />
+      <PrimaryButton title="Browse Doctors" onPress={() => navigation.navigate("Doctors")} variant="secondary" />
       <PrimaryButton
         title="Go To Session Setup"
         onPress={() => navigation.navigate("SessionSetup")}
