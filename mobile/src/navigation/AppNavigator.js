@@ -2,61 +2,60 @@ import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import { useSession } from "../context/SessionContext";
-import AdminMedicalRecordListScreen from "../screens/AdminMedicalRecordListScreen";
-import AdminDoctorListScreen from "../screens/AdminDoctorListScreen";
-import CreateMedicalRecordScreen from "../screens/CreateMedicalRecordScreen";
-import DoctorDetailScreen from "../screens/DoctorDetailScreen";
-import DoctorFormScreen from "../screens/DoctorFormScreen";
-import EditMedicalRecordScreen from "../screens/EditMedicalRecordScreen";
-import PatientRecordsHistoryScreen from "../screens/PatientRecordsHistoryScreen";
-import PrescriptionFormScreen from "../screens/PrescriptionFormScreen";
-import ReportViewScreen from "../screens/ReportViewScreen";
-import SessionSetupScreen from "../screens/SessionSetupScreen";
+import { useAppData } from "../context/AppDataContext";
+import AppointmentDetailScreen from "../screens/AppointmentDetailScreen";
+import AppointmentFormScreen from "../screens/AppointmentFormScreen";
+import AppointmentListScreen from "../screens/AppointmentListScreen";
+import DoctorDetailsScreen from "../screens/DoctorDetailsScreen";
+import DoctorListScreen from "../screens/DoctorListScreen";
+import DoctorManagementFormScreen from "../screens/DoctorManagementFormScreen";
+import HomeDashboardScreen from "../screens/HomeDashboardScreen";
+import MedicalReportDetailScreen from "../screens/MedicalReportDetailScreen";
+import MedicalReportFormScreen from "../screens/MedicalReportFormScreen";
+import MedicalReportListScreen from "../screens/MedicalReportListScreen";
 
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
-  const { isReady, session } = useSession();
+  const { isReady } = useAppData();
 
   if (!isReady) {
     return null;
   }
 
-  const startScreen = session.token ? (session.role === "admin" ? "AdminMedicalRecords" : "PatientHistory") : "SessionSetup";
-
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName={startScreen}>
-        <Stack.Screen name="SessionSetup" component={SessionSetupScreen} options={{ title: "Session Setup" }} />
+      <Stack.Navigator
+        initialRouteName="Home"
+        screenOptions={{
+          headerLargeTitle: false,
+          headerShadowVisible: false,
+          headerStyle: {
+            backgroundColor: "#f3f8fb"
+          },
+          headerTitleStyle: {
+            color: "#17303b",
+            fontWeight: "700"
+          }
+        }}
+      >
+        <Stack.Screen name="Home" component={HomeDashboardScreen} options={{ title: "Clinic Management App" }} />
+        <Stack.Screen name="DoctorList" component={DoctorListScreen} options={{ title: "Doctor Management" }} />
+        <Stack.Screen name="DoctorForm" component={DoctorManagementFormScreen} options={{ title: "Doctor Form" }} />
+        <Stack.Screen name="DoctorDetail" component={DoctorDetailsScreen} options={{ title: "Doctor Details" }} />
+        <Stack.Screen name="AppointmentList" component={AppointmentListScreen} options={{ title: "Appointments" }} />
+        <Stack.Screen name="AppointmentForm" component={AppointmentFormScreen} options={{ title: "Appointment Form" }} />
         <Stack.Screen
-          name="AdminMedicalRecords"
-          component={AdminMedicalRecordListScreen}
-          options={{ title: "Admin Medical Records" }}
+          name="AppointmentDetail"
+          component={AppointmentDetailScreen}
+          options={{ title: "Appointment Details" }}
         />
+        <Stack.Screen name="ReportList" component={MedicalReportListScreen} options={{ title: "Medical Reports" }} />
+        <Stack.Screen name="ReportForm" component={MedicalReportFormScreen} options={{ title: "Medical Report Form" }} />
         <Stack.Screen
-          name="CreateMedicalRecord"
-          component={CreateMedicalRecordScreen}
-          options={{ title: "Create Medical Record" }}
-        />
-        <Stack.Screen name="Doctors" component={AdminDoctorListScreen} options={{ title: "Doctor Directory" }} />
-        <Stack.Screen name="DoctorDetail" component={DoctorDetailScreen} options={{ title: "Doctor Detail" }} />
-        <Stack.Screen name="DoctorForm" component={DoctorFormScreen} options={{ title: "Doctor Form" }} />
-        <Stack.Screen
-          name="EditMedicalRecord"
-          component={EditMedicalRecordScreen}
-          options={{ title: "Edit Medical Record" }}
-        />
-        <Stack.Screen
-          name="PrescriptionForm"
-          component={PrescriptionFormScreen}
-          options={{ title: "Prescription Form" }}
-        />
-        <Stack.Screen name="ReportView" component={ReportViewScreen} options={{ title: "Report View" }} />
-        <Stack.Screen
-          name="PatientHistory"
-          component={PatientRecordsHistoryScreen}
-          options={{ title: "Patient History" }}
+          name="ReportDetail"
+          component={MedicalReportDetailScreen}
+          options={{ title: "Report Details" }}
         />
       </Stack.Navigator>
     </NavigationContainer>

@@ -1,14 +1,14 @@
 import React from "react";
 import { StatusBar } from "expo-status-bar";
 
-import { SessionProvider } from "./src/context/SessionContext";
+import { AppDataProvider } from "./src/context/AppDataContext";
 import AppNavigator from "./src/navigation/AppNavigator";
 
 export default function App() {
   return (
-    <SessionProvider>
+    <AppDataProvider>
       <StatusBar style="auto" />
       <AppNavigator />
-    </SessionProvider>
+    </AppDataProvider>
   );
 }
