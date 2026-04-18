@@ -35,8 +35,10 @@ const mapDoctor = (doctor) => ({
   phone: doctor.phone,
   email: doctor.email,
   availability: formatAvailability(doctor),
+  availabilityDay: doctor.availability?.[0]?.day || "",
+  availabilityStartTime: doctor.availability?.[0]?.startTime || "",
+  availabilityEndTime: doctor.availability?.[0]?.endTime || "",
   roomNumber: doctor.roomNumber || "",
-  department: doctor.department || ""
 });
 
 const mapAppointment = (appointment) => ({
@@ -159,14 +161,23 @@ export function AppDataProvider({ children }) {
   }, [isAuthReady, refreshData]);
 
   const upsertDoctor = async (doctor) => {
+    const availability = doctor.availabilityDay && doctor.availabilityStartTime && doctor.availabilityEndTime
+      ? [
+          {
+            day: doctor.availabilityDay.trim(),
+            startTime: doctor.availabilityStartTime.trim(),
+            endTime: doctor.availabilityEndTime.trim()
+          }
+        ]
+      : [];
+
     const payload = {
       name: doctor.name.trim(),
       specialization: doctor.specialization.trim(),
       phone: doctor.phone.trim(),
       email: doctor.email.trim().toLowerCase(),
-      availabilityLabel: doctor.availability.trim(),
-      roomNumber: doctor.roomNumber.trim(),
-      department: doctor.department.trim()
+      availability,
+      roomNumber: doctor.roomNumber.trim()
     };
 
     const savedDoctor = doctor.rawId

@@ -87,7 +87,7 @@ export default function DoctorListScreen({ navigation }) {
             `Phone: ${doctor.phone}`,
             `Email: ${doctor.email}`,
             `Availability: ${doctor.availability}`,
-            `Location: ${doctor.roomNumber || doctor.department || "-"}`
+            `Room: ${doctor.roomNumber || "-"}`
           ]}
         >
           <PrimaryButton title="View Details" onPress={() => navigation.navigate("DoctorDetail", { doctorId: doctor.rawId })} />

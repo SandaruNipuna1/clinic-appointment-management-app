@@ -33,14 +33,10 @@ export default function DoctorDetailsScreen({ navigation, route }) {
           `Phone: ${doctor.phone}`,
           `Email: ${doctor.email}`,
           `Availability: ${doctor.availability}`,
-          `Room / Department: ${doctor.roomNumber || doctor.department || "-"}`
+          `Room: ${doctor.roomNumber || "-"}`
         ]}
       >
         <View style={styles.badgeRow}>
-          <View style={styles.badge}>
-            <Text style={styles.badgeLabel}>Department</Text>
-            <Text style={styles.badgeValue}>{doctor.department || "General"}</Text>
-          </View>
           <View style={styles.badge}>
             <Text style={styles.badgeLabel}>Room</Text>
             <Text style={styles.badgeValue}>{doctor.roomNumber || "TBA"}</Text>

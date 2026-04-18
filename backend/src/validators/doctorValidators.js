@@ -48,9 +48,8 @@ const createDoctorValidation = [
   body("specialization").trim().notEmpty().withMessage("specialization is required"),
   body("email").isEmail().withMessage("email must be valid"),
   body("phone").trim().notEmpty().withMessage("phone is required"),
-  body("availabilityLabel").optional().trim(),
+  body("availability").isArray({ min: 1 }).withMessage("availability is required"),
   body("roomNumber").optional().trim(),
-  body("department").optional().trim(),
   body("experience")
     .optional()
     .isInt({ min: 0 })
@@ -68,9 +67,8 @@ const updateDoctorValidation = [
   body("specialization").optional().trim().notEmpty().withMessage("specialization cannot be empty"),
   body("email").optional().isEmail().withMessage("email must be valid"),
   body("phone").optional().trim().notEmpty().withMessage("phone cannot be empty"),
-  body("availabilityLabel").optional().trim(),
+  body("availability").optional().isArray({ min: 1 }).withMessage("availability must be a non-empty array"),
   body("roomNumber").optional().trim(),
-  body("department").optional().trim(),
   body("experience")
     .optional()
     .isInt({ min: 0 })

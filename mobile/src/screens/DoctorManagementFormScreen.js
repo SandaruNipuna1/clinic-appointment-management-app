@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Alert, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 import FormInput from "../components/FormInput";
 import PrimaryButton from "../components/PrimaryButton";
@@ -7,10 +7,25 @@ import ScreenContainer from "../components/ScreenContainer";
 import { useAppData } from "../context/AppDataContext";
 import { useAuth } from "../context/AuthContext";
 
+const SPECIALIZATION_OPTIONS = [
+  "General Physician",
+  "Cardiologist",
+  "Dermatologist",
+  "Orthopedic",
+  "ENT Specialist",
+  "Gynecologist",
+  "Pediatrician",
+  "Dentist",
+  "Neurologist",
+  "Psychiatrist"
+];
+
+const DAY_OPTIONS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
 const validateDoctor = (values, doctors, currentId) => {
   const errors = {};
 
-  ["name", "specialization", "phone", "email", "availability"].forEach((field) => {
+  ["name", "specialization", "phone", "email", "availabilityDay", "availabilityStartTime", "availabilityEndTime"].forEach((field) => {
     if (!values[field].trim()) {
       errors[field] = `${field} is required`;
     }
@@ -38,11 +53,14 @@ export default function DoctorManagementFormScreen({ navigation, route }) {
     specialization: existingDoctor?.specialization || "",
     phone: existingDoctor?.phone || "",
     email: existingDoctor?.email || "",
-    availability: existingDoctor?.availability || "",
+    availabilityDay: existingDoctor?.availabilityDay || "",
+    availabilityStartTime: existingDoctor?.availabilityStartTime || "",
+    availabilityEndTime: existingDoctor?.availabilityEndTime || "",
     roomNumber: existingDoctor?.roomNumber || "",
-    department: existingDoctor?.department || ""
   });
   const [errors, setErrors] = useState({});
+  const [showSpecializations, setShowSpecializations] = useState(false);
+  const [showDays, setShowDays] = useState(false);
 
   const handleChange = (field, value) => {
     setValues((current) => ({ ...current, [field]: value }));
@@ -64,9 +82,10 @@ export default function DoctorManagementFormScreen({ navigation, route }) {
         specialization: values.specialization.trim(),
         phone: values.phone.trim(),
         email: values.email.trim().toLowerCase(),
-        availability: values.availability.trim(),
+        availabilityDay: values.availabilityDay.trim(),
+        availabilityStartTime: values.availabilityStartTime.trim(),
+        availabilityEndTime: values.availabilityEndTime.trim(),
         roomNumber: values.roomNumber.trim(),
-        department: values.department.trim()
       });
 
       Alert.alert("Saved", existingDoctor ? "Doctor details updated." : "Doctor added successfully.");
@@ -96,32 +115,77 @@ export default function DoctorManagementFormScreen({ navigation, route }) {
           <FormInput label="Doctor ID" value={existingDoctor.id} onChangeText={() => {}} editable={false} />
         ) : null}
         <FormInput label="Name" value={values.name} onChangeText={(value) => handleChange("name", value)} error={errors.name} />
-        <FormInput
-          label="Specialization"
-          value={values.specialization}
-          onChangeText={(value) => handleChange("specialization", value)}
-          error={errors.specialization}
-        />
+        <Text style={styles.filterLabel}>Specialization</Text>
+        <Pressable style={styles.selectorField} onPress={() => setShowSpecializations((current) => !current)}>
+          <Text style={values.specialization ? styles.selectorValue : styles.selectorPlaceholder}>
+            {values.specialization || "Select specialization"}
+          </Text>
+        </Pressable>
+        {showSpecializations ? (
+          <View style={styles.optionGrid}>
+            {SPECIALIZATION_OPTIONS.map((option) => (
+              <Pressable
+                key={option}
+                style={[styles.optionChip, values.specialization === option && styles.optionChipSelected]}
+                onPress={() => {
+                  handleChange("specialization", option);
+                  setShowSpecializations(false);
+                }}
+              >
+                <Text style={[styles.optionChipText, values.specialization === option && styles.optionChipTextSelected]}>
+                  {option}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
+        {errors.specialization ? <Text style={styles.errorText}>{errors.specialization}</Text> : null}
         <FormInput label="Phone Number" value={values.phone} onChangeText={(value) => handleChange("phone", value)} error={errors.phone} />
         <FormInput label="Email" value={values.email} onChangeText={(value) => handleChange("email", value)} error={errors.email} />
+        <Text style={styles.filterLabel}>Available Day</Text>
+        <Pressable style={styles.selectorField} onPress={() => setShowDays((current) => !current)}>
+          <Text style={values.availabilityDay ? styles.selectorValue : styles.selectorPlaceholder}>
+            {values.availabilityDay || "Select available day"}
+          </Text>
+        </Pressable>
+        {showDays ? (
+          <View style={styles.optionGrid}>
+            {DAY_OPTIONS.map((option) => (
+              <Pressable
+                key={option}
+                style={[styles.optionChip, values.availabilityDay === option && styles.optionChipSelected]}
+                onPress={() => {
+                  handleChange("availabilityDay", option);
+                  setShowDays(false);
+                }}
+              >
+                <Text style={[styles.optionChipText, values.availabilityDay === option && styles.optionChipTextSelected]}>
+                  {option}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
+        {errors.availabilityDay ? <Text style={styles.errorText}>{errors.availabilityDay}</Text> : null}
         <FormInput
-          label="Availability"
-          value={values.availability}
-          onChangeText={(value) => handleChange("availability", value)}
-          error={errors.availability}
-          placeholder="Mon-Fri • 09:00 to 16:00"
+          label="Start Time"
+          value={values.availabilityStartTime}
+          onChangeText={(value) => handleChange("availabilityStartTime", value)}
+          error={errors.availabilityStartTime}
+          placeholder="09:00"
+        />
+        <FormInput
+          label="End Time"
+          value={values.availabilityEndTime}
+          onChangeText={(value) => handleChange("availabilityEndTime", value)}
+          error={errors.availabilityEndTime}
+          placeholder="16:00"
         />
         <FormInput
           label="Room Number"
           value={values.roomNumber}
           onChangeText={(value) => handleChange("roomNumber", value)}
           placeholder="Room 12"
-        />
-        <FormInput
-          label="Department"
-          value={values.department}
-          onChangeText={(value) => handleChange("department", value)}
-          placeholder="Cardiology"
         />
       </View>
 
@@ -151,5 +215,67 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     borderWidth: 1,
     borderColor: "#dde8ee"
+  },
+  filterLabel: {
+    fontSize: 13,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.9,
+    color: "#4b6972",
+    marginBottom: 10
+  },
+  filterWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginBottom: 10
+  },
+  selectorField: {
+    borderWidth: 1,
+    borderColor: "#d3dee5",
+    borderRadius: 18,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    backgroundColor: "#ffffff",
+    marginBottom: 10
+  },
+  selectorValue: {
+    fontSize: 16,
+    color: "#12303a",
+    fontWeight: "600"
+  },
+  selectorPlaceholder: {
+    fontSize: 16,
+    color: "#8aa0ad"
+  },
+  optionGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginBottom: 12
+  },
+  optionChip: {
+    borderWidth: 1,
+    borderColor: "#d3dee5",
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    backgroundColor: "#ffffff"
+  },
+  optionChipSelected: {
+    backgroundColor: "#0f766e",
+    borderColor: "#0f766e"
+  },
+  optionChipText: {
+    color: "#29444b",
+    fontWeight: "700",
+    fontSize: 14
+  },
+  optionChipTextSelected: {
+    color: "#ffffff"
+  },
+  errorText: {
+    color: "#dc2626",
+    marginBottom: 10
   }
 });
