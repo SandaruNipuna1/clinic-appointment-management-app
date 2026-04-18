@@ -55,7 +55,7 @@ const createAppointment = asyncHandler(async (req, res) => {
     date: new Date(`${req.body.date}T00:00:00.000Z`),
     time: req.body.time,
     reason: req.body.reason.trim(),
-    status: isPatient ? "Scheduled" : req.body.status || "Scheduled"
+    status: "Scheduled"
   });
 
   res.status(201).json(serializeAppointment(appointment));
