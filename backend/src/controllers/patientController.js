@@ -29,7 +29,7 @@ const createPatient = asyncHandler(async (req, res) => {
 
   const patient = await Patient.create({
     ...req.body,
-    age: Number(req.body.age),
+    dateOfBirth: new Date(`${req.body.dateOfBirth}T00:00:00.000Z`),
     email: normalizedEmail,
     patientCode: await generateEntityCode(Patient, "patientCode", "PAT")
   });
@@ -60,8 +60,8 @@ const updatePatient = asyncHandler(async (req, res) => {
     req.body.email = normalizedEmail;
   }
 
-  if (req.body.age !== undefined) {
-    req.body.age = Number(req.body.age);
+  if (req.body.dateOfBirth) {
+    req.body.dateOfBirth = new Date(`${req.body.dateOfBirth}T00:00:00.000Z`);
   }
 
   Object.assign(patient, req.body);

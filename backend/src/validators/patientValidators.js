@@ -2,6 +2,7 @@ const { body, param } = require("express-validator");
 const mongoose = require("mongoose");
 
 const isValidObjectId = (value) => mongoose.Types.ObjectId.isValid(value);
+const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 const patientIdParamValidation = [
   param("id").custom((value) => {
@@ -14,7 +15,12 @@ const patientIdParamValidation = [
 
 const createPatientValidation = [
   body("name").trim().notEmpty().withMessage("name is required"),
-  body("age").isInt({ min: 0 }).withMessage("age must be a non-negative number"),
+  body("dateOfBirth").custom((value) => {
+    if (!DATE_PATTERN.test(value)) {
+      throw new Error("dateOfBirth must use YYYY-MM-DD format");
+    }
+    return true;
+  }),
   body("gender").trim().notEmpty().withMessage("gender is required"),
   body("phone").trim().notEmpty().withMessage("phone is required"),
   body("email").isEmail().withMessage("email must be valid"),
@@ -24,7 +30,14 @@ const createPatientValidation = [
 const updatePatientValidation = [
   ...patientIdParamValidation,
   body("name").optional().trim().notEmpty().withMessage("name cannot be empty"),
-  body("age").optional().isInt({ min: 0 }).withMessage("age must be a non-negative number"),
+  body("dateOfBirth")
+    .optional()
+    .custom((value) => {
+      if (!DATE_PATTERN.test(value)) {
+        throw new Error("dateOfBirth must use YYYY-MM-DD format");
+      }
+      return true;
+    }),
   body("gender").optional().trim().notEmpty().withMessage("gender cannot be empty"),
   body("phone").optional().trim().notEmpty().withMessage("phone cannot be empty"),
   body("email").optional().isEmail().withMessage("email must be valid"),

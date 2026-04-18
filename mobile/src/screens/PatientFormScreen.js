@@ -12,14 +12,14 @@ const GENDER_OPTIONS = ["Male", "Female", "Other"];
 const validatePatient = (values, patients, currentId) => {
   const errors = {};
 
-  ["name", "age", "gender", "phone", "email", "address"].forEach((field) => {
+  ["name", "dateOfBirth", "gender", "phone", "email", "address"].forEach((field) => {
     if (!String(values[field] || "").trim()) {
       errors[field] = `${field} is required`;
     }
   });
 
-  if (values.age && Number(values.age) < 0) {
-    errors.age = "age must be zero or more";
+  if (values.dateOfBirth && !/^\d{4}-\d{2}-\d{2}$/.test(values.dateOfBirth.trim())) {
+    errors.dateOfBirth = "dateOfBirth must use YYYY-MM-DD format";
   }
 
   const duplicateEmail = patients.find(
@@ -40,7 +40,7 @@ export default function PatientFormScreen({ navigation, route }) {
   const existingPatient = useMemo(() => patients.find((patient) => patient.rawId === patientId), [patients, patientId]);
   const [values, setValues] = useState({
     name: existingPatient?.name || "",
-    age: existingPatient?.age || "",
+    dateOfBirth: existingPatient?.dateOfBirth || "",
     gender: existingPatient?.gender || "Male",
     phone: existingPatient?.phone || "",
     email: existingPatient?.email || "",
@@ -88,11 +88,22 @@ export default function PatientFormScreen({ navigation, route }) {
   return (
     <ScreenContainer>
       <Text style={styles.title}>{existingPatient ? "Edit patient" : "Add patient"}</Text>
-      <Text style={styles.subtitle}>Fill in the basic patient details and save the record.</Text>
+      <Text style={styles.subtitle}>Fill in the patient details. The patient ID is generated automatically by the system.</Text>
 
       <View style={styles.panel}>
+        {existingPatient ? (
+          <FormInput label="Patient ID" value={existingPatient.id} onChangeText={() => {}} editable={false} />
+        ) : (
+          <FormInput label="Patient ID" value="Auto-generated after save" onChangeText={() => {}} editable={false} />
+        )}
         <FormInput label="Patient Name" value={values.name} onChangeText={(value) => handleChange("name", value)} error={errors.name} />
-        <FormInput label="Age" value={values.age} onChangeText={(value) => handleChange("age", value)} error={errors.age} />
+        <FormInput
+          label="Date of Birth"
+          value={values.dateOfBirth}
+          onChangeText={(value) => handleChange("dateOfBirth", value)}
+          error={errors.dateOfBirth}
+          placeholder="2002-05-14"
+        />
 
         <Text style={styles.filterLabel}>Gender</Text>
         <View style={styles.filterWrap}>

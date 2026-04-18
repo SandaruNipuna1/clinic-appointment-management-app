@@ -72,7 +72,7 @@ const mapPatient = (patient) => ({
   rawId: patient._id,
   id: patient.patientCode || patient._id,
   name: patient.name,
-  age: String(patient.age ?? ""),
+  dateOfBirth: formatDate(patient.dateOfBirth),
   gender: patient.gender,
   phone: patient.phone,
   email: patient.email,
@@ -247,7 +247,7 @@ export function AppDataProvider({ children }) {
   const upsertPatient = async (patient) => {
     const payload = {
       name: patient.name.trim(),
-      age: Number(patient.age),
+      dateOfBirth: patient.dateOfBirth.trim(),
       gender: patient.gender.trim(),
       phone: patient.phone.trim(),
       email: patient.email.trim().toLowerCase(),

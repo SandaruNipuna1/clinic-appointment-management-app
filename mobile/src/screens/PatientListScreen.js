@@ -69,7 +69,7 @@ export default function PatientListScreen({ navigation }) {
           key={patient.id}
           title={`${patient.name} • ${patient.id}`}
           lines={[
-            `Age: ${patient.age}`,
+            `Date of Birth: ${patient.dateOfBirth}`,
             `Gender: ${patient.gender}`,
             `Phone: ${patient.phone}`,
             `Email: ${patient.email}`,
