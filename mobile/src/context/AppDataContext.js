@@ -83,37 +83,40 @@ const mapSchedule = (schedule) => ({
   rawId: schedule._id,
   id: schedule.scheduleCode || schedule._id,
   doctorName: schedule.doctorName,
-  availableDay: schedule.availableDay,
+  availableDays: Array.isArray(schedule.availableDays)
+    ? schedule.availableDays
+    : schedule.availableDay
+      ? [schedule.availableDay]
+      : [],
+  availableDay: Array.isArray(schedule.availableDays)
+    ? schedule.availableDays.join(", ")
+    : schedule.availableDay || "",
   startTime: schedule.startTime,
   endTime: schedule.endTime,
   status: schedule.status
 });
 
+const EMPTY_STATE = {
+  doctors: [],
+  patients: [],
+  appointments: [],
+  reports: [],
+  schedules: []
+};
+
 export function AppDataProvider({ children }) {
   const { apiBaseUrl, token, currentUser, isReady: isAuthReady } = useAuth();
-  const [state, setState] = useState({
-    doctors: [],
-    patients: [],
-    appointments: [],
-    reports: [],
-    schedules: []
-  });
+  const [state, setState] = useState(EMPTY_STATE);
   const [isReady, setIsReady] = useState(false);
 
   const refreshData = useCallback(async () => {
     if (!token) {
-      setState({
-        doctors: [],
-        patients: [],
-        appointments: [],
-        reports: [],
-        schedules: []
-      });
+      setState(EMPTY_STATE);
       setIsReady(true);
       return;
     }
 
-    const [doctorData, patientData, appointmentData, reportData, scheduleData] = await Promise.all([
+    const results = await Promise.allSettled([
       moduleApi.getDoctors({ baseUrl: apiBaseUrl, token }),
       moduleApi.getPatients({ baseUrl: apiBaseUrl, token }).catch((error) => {
         if (currentUser?.role === "patient") {
@@ -126,12 +129,21 @@ export function AppDataProvider({ children }) {
       moduleApi.getSchedules({ baseUrl: apiBaseUrl, token })
     ]);
 
+    const [doctorResult, patientResult, appointmentResult, reportResult, scheduleResult] = results;
+
+    results.forEach((result, index) => {
+      if (result.status === "rejected") {
+        const labels = ["doctors", "patients", "appointments", "reports", "schedules"];
+        console.warn(`Failed to load ${labels[index]}`, result.reason);
+      }
+    });
+
     setState({
-      doctors: doctorData.map(mapDoctor),
-      patients: patientData.map(mapPatient),
-      appointments: appointmentData.map(mapAppointment),
-      reports: reportData.map(mapReport),
-      schedules: scheduleData.map(mapSchedule)
+      doctors: doctorResult.status === "fulfilled" ? doctorResult.value.map(mapDoctor) : [],
+      patients: patientResult.status === "fulfilled" ? patientResult.value.map(mapPatient) : [],
+      appointments: appointmentResult.status === "fulfilled" ? appointmentResult.value.map(mapAppointment) : [],
+      reports: reportResult.status === "fulfilled" ? reportResult.value.map(mapReport) : [],
+      schedules: scheduleResult.status === "fulfilled" ? scheduleResult.value.map(mapSchedule) : []
     });
     setIsReady(true);
   }, [apiBaseUrl, currentUser?.role, token]);
@@ -146,13 +158,7 @@ export function AppDataProvider({ children }) {
         await refreshData();
       } catch (error) {
         console.warn("Failed to load app data", error);
-        setState({
-          doctors: [],
-          patients: [],
-          appointments: [],
-          reports: [],
-          schedules: []
-        });
+        setState(EMPTY_STATE);
         setIsReady(true);
       }
     };
@@ -412,7 +418,7 @@ export function AppDataProvider({ children }) {
   const upsertSchedule = async (schedule) => {
     const payload = {
       doctorName: schedule.doctorName.trim(),
-      availableDay: schedule.availableDay.trim(),
+      availableDays: schedule.availableDays,
       startTime: schedule.startTime.trim(),
       endTime: schedule.endTime.trim(),
       status: schedule.status.trim()
