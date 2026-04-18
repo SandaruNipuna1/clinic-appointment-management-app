@@ -5,10 +5,13 @@ import InfoCard from "../components/InfoCard";
 import PrimaryButton from "../components/PrimaryButton";
 import ScreenContainer from "../components/ScreenContainer";
 import { useAppData } from "../context/AppDataContext";
+import { useAuth } from "../context/AuthContext";
 
 export default function MedicalReportDetailScreen({ navigation, route }) {
   const { reports } = useAppData();
+  const { currentUser } = useAuth();
   const report = useMemo(() => reports.find((item) => item.rawId === route.params?.reportId), [reports, route.params?.reportId]);
+  const canEditReports = currentUser?.role === "admin";
 
   if (!report) {
     return (
@@ -34,7 +37,9 @@ export default function MedicalReportDetailScreen({ navigation, route }) {
           `Additional Notes: ${report.additionalNotes || "-"}`
         ]}
       />
-      <PrimaryButton title="Edit Report" onPress={() => navigation.navigate("ReportForm", { reportId: report.rawId })} />
+      {canEditReports ? (
+        <PrimaryButton title="Edit Report" onPress={() => navigation.navigate("ReportForm", { reportId: report.rawId })} />
+      ) : null}
       <PrimaryButton title="Back to Reports" onPress={() => navigation.goBack()} variant="ghost" />
     </ScreenContainer>
   );

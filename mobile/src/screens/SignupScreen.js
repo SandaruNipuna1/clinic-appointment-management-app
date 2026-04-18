@@ -16,11 +16,6 @@ const ROLE_OPTIONS = [
     value: "receptionist",
     label: "Receptionist",
     description: "Manage schedules"
-  },
-  {
-    value: "admin",
-    label: "Admin",
-    description: "Full system access"
   }
 ];
 
@@ -77,7 +72,7 @@ export default function SignupScreen() {
   return (
     <ScreenContainer>
       <Text style={styles.title}>Create account</Text>
-      <Text style={styles.subtitle}>Register a new profile and choose the role-based experience you need.</Text>
+      <Text style={styles.subtitle}>Register a new profile for patient or receptionist access.</Text>
       <FormInput label="Full Name" value={fullName} onChangeText={setFullName} />
       <FormInput label="Email" value={email} onChangeText={setEmail} />
       <FormInput

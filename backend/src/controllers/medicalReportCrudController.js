@@ -3,12 +3,13 @@ const asyncHandler = require("../utils/asyncHandler");
 const generateEntityCode = require("../utils/generateEntityCode");
 
 const serializeMedicalReport = (report) => ({
-  ...report.toObject(),
+  ...(typeof report.toObject === "function" ? report.toObject() : report),
   reportDate: report.reportDate
 });
 
 const getMedicalReports = asyncHandler(async (req, res) => {
-  const reports = await MedicalReport.find()
+  const query = req.user.role === "patient" ? { patientId: req.user.id } : {};
+  const reports = await MedicalReport.find(query)
     .sort({ reportDate: -1, createdAt: -1 })
     .lean();
 
@@ -21,6 +22,11 @@ const getMedicalReportById = asyncHandler(async (req, res) => {
   if (!report) {
     res.status(404);
     throw new Error("Medical report not found");
+  }
+
+  if (req.user.role === "patient" && String(report.patientId || "") !== String(req.user.id)) {
+    res.status(403);
+    throw new Error("Access denied");
   }
 
   res.status(200).json(report);

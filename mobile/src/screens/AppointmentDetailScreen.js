@@ -1,17 +1,21 @@
 import React, { useMemo } from "react";
-import { StyleSheet, Text } from "react-native";
+import { Alert, StyleSheet, Text } from "react-native";
 
 import InfoCard from "../components/InfoCard";
 import PrimaryButton from "../components/PrimaryButton";
 import ScreenContainer from "../components/ScreenContainer";
 import { useAppData } from "../context/AppDataContext";
+import { useAuth } from "../context/AuthContext";
 
 export default function AppointmentDetailScreen({ navigation, route }) {
-  const { appointments } = useAppData();
+  const { appointments, upsertAppointment } = useAppData();
+  const { currentUser } = useAuth();
   const appointment = useMemo(
     () => appointments.find((item) => item.rawId === route.params?.appointmentId),
     [appointments, route.params?.appointmentId]
   );
+  const canManageAppointments = ["admin", "receptionist"].includes(currentUser?.role);
+  const canCancelOwnAppointment = currentUser?.role === "patient" && appointment?.status !== "Cancelled";
 
   if (!appointment) {
     return (
@@ -36,10 +40,30 @@ export default function AppointmentDetailScreen({ navigation, route }) {
           `Status: ${appointment.status}`
         ]}
       />
-      <PrimaryButton
-        title="Edit Appointment"
-        onPress={() => navigation.navigate("AppointmentForm", { appointmentId: appointment.rawId })}
-      />
+      {canManageAppointments ? (
+        <PrimaryButton
+          title="Edit Appointment"
+          onPress={() => navigation.navigate("AppointmentForm", { appointmentId: appointment.rawId })}
+        />
+      ) : null}
+      {canCancelOwnAppointment ? (
+        <PrimaryButton
+          title="Cancel Appointment"
+          onPress={async () => {
+            try {
+              await upsertAppointment({
+                ...appointment,
+                status: "Cancelled"
+              });
+              Alert.alert("Cancelled", "Your appointment was cancelled.");
+              navigation.goBack();
+            } catch (error) {
+              Alert.alert("Cancel failed", error.message);
+            }
+          }}
+          variant="ghost"
+        />
+      ) : null}
       <PrimaryButton title="Back to Appointments" onPress={() => navigation.goBack()} variant="ghost" />
     </ScreenContainer>
   );

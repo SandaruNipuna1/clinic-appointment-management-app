@@ -4,12 +4,13 @@ const asyncHandler = require("../utils/asyncHandler");
 const generateEntityCode = require("../utils/generateEntityCode");
 
 const serializeAppointment = (appointment) => ({
-  ...appointment.toObject(),
+  ...(typeof appointment.toObject === "function" ? appointment.toObject() : appointment),
   date: appointment.date
 });
 
 const getAppointments = asyncHandler(async (req, res) => {
-  const appointments = await Appointment.find()
+  const query = req.user.role === "patient" ? { patientId: req.user.id } : {};
+  const appointments = await Appointment.find(query)
     .sort({ date: -1, time: -1 })
     .lean();
 
@@ -22,6 +23,11 @@ const getAppointmentById = asyncHandler(async (req, res) => {
   if (!appointment) {
     res.status(404);
     throw new Error("Appointment not found");
+  }
+
+  if (req.user.role === "patient" && String(appointment.patientId || "") !== String(req.user.id)) {
+    res.status(403);
+    throw new Error("Access denied");
   }
 
   res.status(200).json(appointment);
@@ -38,16 +44,18 @@ const createAppointment = asyncHandler(async (req, res) => {
     throw new Error("Doctor not found");
   }
 
+  const isPatient = req.user.role === "patient";
+
   const appointment = await Appointment.create({
     appointmentCode: await generateEntityCode(Appointment, "appointmentCode", "APT"),
-    patientId: req.body.patientId || null,
-    patientName: req.body.patientName.trim(),
+    patientId: isPatient ? req.user.id : req.body.patientId || null,
+    patientName: isPatient ? req.user.fullName : req.body.patientName.trim(),
     doctorId: doctor._id,
     doctorName: doctor.name,
     date: new Date(`${req.body.date}T00:00:00.000Z`),
     time: req.body.time,
     reason: req.body.reason.trim(),
-    status: req.body.status || "Scheduled"
+    status: isPatient ? "Scheduled" : req.body.status || "Scheduled"
   });
 
   res.status(201).json(serializeAppointment(appointment));
@@ -59,6 +67,25 @@ const updateAppointment = asyncHandler(async (req, res) => {
   if (!appointment) {
     res.status(404);
     throw new Error("Appointment not found");
+  }
+
+  const isPatient = req.user.role === "patient";
+
+  if (isPatient && String(appointment.patientId || "") !== String(req.user.id)) {
+    res.status(403);
+    throw new Error("Access denied");
+  }
+
+  if (isPatient) {
+    if (req.body.status !== "Cancelled") {
+      res.status(403);
+      throw new Error("Patients can only cancel their own appointments");
+    }
+
+    appointment.status = "Cancelled";
+    const cancelledAppointment = await appointment.save();
+    res.status(200).json(serializeAppointment(cancelledAppointment));
+    return;
   }
 
   if (req.body.doctorId) {
@@ -111,6 +138,11 @@ const deleteAppointment = asyncHandler(async (req, res) => {
   if (!appointment) {
     res.status(404);
     throw new Error("Appointment not found");
+  }
+
+  if (req.user.role === "patient") {
+    res.status(403);
+    throw new Error("Patients cannot delete appointments");
   }
 
   await appointment.deleteOne();

@@ -1,6 +1,6 @@
 const { body } = require("express-validator");
 
-const ROLE_OPTIONS = ["admin", "receptionist", "patient"];
+const SIGNUP_ROLE_OPTIONS = ["receptionist", "patient"];
 
 const signupValidation = [
   body("fullName").trim().notEmpty().withMessage("Full name is required"),
@@ -11,7 +11,7 @@ const signupValidation = [
     .bail()
     .isLength({ min: 6 })
     .withMessage("Password must be at least 6 characters"),
-  body("role").isIn(ROLE_OPTIONS).withMessage("Role must be admin, receptionist, or patient")
+  body("role").isIn(SIGNUP_ROLE_OPTIONS).withMessage("Role must be receptionist or patient")
 ];
 
 const loginValidation = [

@@ -14,10 +14,18 @@ const protect = asyncHandler(async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const User = require("../models/User");
+    const user = await User.findById(decoded.id).select("fullName role");
+
+    if (!user) {
+      res.status(401);
+      throw new Error("Not authorized, user not found");
+    }
 
     req.user = {
-      id: decoded.id,
-      role: decoded.role
+      id: user._id.toString(),
+      role: user.role,
+      fullName: user.fullName
     };
 
     next();

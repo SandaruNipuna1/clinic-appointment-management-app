@@ -7,7 +7,7 @@ const {
   updateAppointment,
   deleteAppointment
 } = require("../controllers/appointmentController");
-const { protect, adminOrReceptionist } = require("../middleware/authMiddleware");
+const { protect } = require("../middleware/authMiddleware");
 const validateRequest = require("../middleware/validateRequest");
 const {
   appointmentIdParamValidation,
@@ -19,8 +19,8 @@ const router = express.Router();
 
 router.get("/", protect, getAppointments);
 router.get("/:id", protect, appointmentIdParamValidation, validateRequest, getAppointmentById);
-router.post("/", protect, adminOrReceptionist, createAppointmentValidation, validateRequest, createAppointment);
-router.put("/:id", protect, adminOrReceptionist, updateAppointmentValidation, validateRequest, updateAppointment);
-router.delete("/:id", protect, adminOrReceptionist, appointmentIdParamValidation, validateRequest, deleteAppointment);
+router.post("/", protect, createAppointmentValidation, validateRequest, createAppointment);
+router.put("/:id", protect, updateAppointmentValidation, validateRequest, updateAppointment);
+router.delete("/:id", protect, appointmentIdParamValidation, validateRequest, deleteAppointment);
 
 module.exports = router;

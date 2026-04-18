@@ -11,12 +11,14 @@ import { useAuth } from "../context/AuthContext";
 const STATUS_OPTIONS = ["All", "Scheduled", "Completed", "Cancelled"];
 
 export default function AppointmentListScreen({ navigation }) {
-  const { appointments, deleteAppointment } = useAppData();
+  const { appointments, upsertAppointment, deleteAppointment } = useAppData();
   const { currentUser } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [dateFilter, setDateFilter] = useState("");
-  const canEditAppointments = ["admin", "receptionist"].includes(currentUser?.role);
+  const canManageAppointments = ["admin", "receptionist"].includes(currentUser?.role);
+  const canCreateAppointment = ["admin", "receptionist", "patient"].includes(currentUser?.role);
+  const canCancelOwnAppointment = currentUser?.role === "patient";
 
   const filteredAppointments = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -76,7 +78,7 @@ export default function AppointmentListScreen({ navigation }) {
         </View>
       </View>
 
-      {canEditAppointments ? (
+      {canCreateAppointment ? (
         <PrimaryButton title="Create Appointment" onPress={() => navigation.navigate("AppointmentForm")} />
       ) : null}
 
@@ -115,15 +117,31 @@ export default function AppointmentListScreen({ navigation }) {
             title="View Details"
             onPress={() => navigation.navigate("AppointmentDetail", { appointmentId: appointment.rawId })}
           />
-          {canEditAppointments ? (
+          {canManageAppointments ? (
             <PrimaryButton
               title="Edit Appointment"
               onPress={() => navigation.navigate("AppointmentForm", { appointmentId: appointment.rawId })}
               variant="secondary"
             />
           ) : null}
-          {canEditAppointments ? (
+          {canManageAppointments ? (
             <PrimaryButton title="Delete Appointment" onPress={() => handleDelete(appointment)} variant="ghost" />
+          ) : null}
+          {canCancelOwnAppointment && appointment.status !== "Cancelled" ? (
+            <PrimaryButton
+              title="Cancel Appointment"
+              onPress={async () => {
+                try {
+                  await upsertAppointment({
+                    ...appointment,
+                    status: "Cancelled"
+                  });
+                } catch (error) {
+                  Alert.alert("Cancel failed", error.message);
+                }
+              }}
+              variant="ghost"
+            />
           ) : null}
         </InfoCard>
       ))}

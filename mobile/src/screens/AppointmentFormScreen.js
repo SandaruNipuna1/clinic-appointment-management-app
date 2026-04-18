@@ -29,9 +29,10 @@ export default function AppointmentFormScreen({ navigation, route }) {
     () => appointments.find((appointment) => appointment.rawId === appointmentId),
     [appointments, appointmentId]
   );
+  const isPatient = currentUser?.role === "patient";
   const [values, setValues] = useState({
     id: existingAppointment?.id || "",
-    patientName: existingAppointment?.patientName || "",
+    patientName: existingAppointment?.patientName || currentUser?.fullName || "",
     doctorId: existingAppointment?.doctorId || doctors[0]?.rawId || "",
     date: existingAppointment?.date || "",
     time: existingAppointment?.time || "",
@@ -59,6 +60,7 @@ export default function AppointmentFormScreen({ navigation, route }) {
         ...values,
         rawId: existingAppointment?.rawId,
         patientName: values.patientName.trim(),
+        patientId: isPatient ? currentUser?.id : existingAppointment?.patientId || null,
         doctorName: selectedDoctorName,
         date: values.date.trim(),
         time: values.time.trim(),
@@ -73,11 +75,21 @@ export default function AppointmentFormScreen({ navigation, route }) {
     }
   };
 
-  if (!["admin", "receptionist"].includes(currentUser?.role)) {
+  if (!["admin", "receptionist", "patient"].includes(currentUser?.role)) {
     return (
       <ScreenContainer>
         <Text style={styles.title}>Access denied</Text>
-        <Text style={styles.subtitle}>Only admin and receptionist roles can create or edit appointments.</Text>
+        <Text style={styles.subtitle}>You do not have permission to create or edit appointments.</Text>
+        <PrimaryButton title="Back" onPress={() => navigation.goBack()} />
+      </ScreenContainer>
+    );
+  }
+
+  if (isPatient && existingAppointment) {
+    return (
+      <ScreenContainer>
+        <Text style={styles.title}>Access denied</Text>
+        <Text style={styles.subtitle}>Patients can create appointments and cancel their own bookings from the list.</Text>
         <PrimaryButton title="Back" onPress={() => navigation.goBack()} />
       </ScreenContainer>
     );
@@ -86,7 +98,11 @@ export default function AppointmentFormScreen({ navigation, route }) {
   return (
     <ScreenContainer>
       <Text style={styles.title}>{existingAppointment ? "Edit appointment" : "Add appointment"}</Text>
-      <Text style={styles.subtitle}>Complete the booking details, then save the appointment status and timing.</Text>
+      <Text style={styles.subtitle}>
+        {isPatient
+          ? "Choose a doctor, date, time, and reason to book your appointment."
+          : "Complete the booking details, then save the appointment status and timing."}
+      </Text>
 
       <View style={styles.panel}>
         {existingAppointment ? (
@@ -97,6 +113,7 @@ export default function AppointmentFormScreen({ navigation, route }) {
           value={values.patientName}
           onChangeText={(value) => handleChange("patientName", value)}
           error={errors.patientName}
+          editable={!isPatient}
         />
 
         <Text style={styles.filterLabel}>Doctor selection</Text>
@@ -116,21 +133,28 @@ export default function AppointmentFormScreen({ navigation, route }) {
         <FormInput label="Time" value={values.time} onChangeText={(value) => handleChange("time", value)} error={errors.time} placeholder="10:30" />
         <FormInput label="Reason" value={values.reason} onChangeText={(value) => handleChange("reason", value)} error={errors.reason} multiline />
 
-        <Text style={styles.filterLabel}>Status</Text>
-        <View style={styles.filterWrap}>
-          {STATUS_OPTIONS.map((option) => (
-            <PrimaryButton
-              key={option}
-              title={option}
-              onPress={() => handleChange("status", option)}
-              variant={values.status === option ? "primary" : "ghost"}
-            />
-          ))}
-        </View>
-        {errors.status ? <Text style={styles.errorText}>{errors.status}</Text> : null}
+        {!isPatient ? (
+          <>
+            <Text style={styles.filterLabel}>Status</Text>
+            <View style={styles.filterWrap}>
+              {STATUS_OPTIONS.map((option) => (
+                <PrimaryButton
+                  key={option}
+                  title={option}
+                  onPress={() => handleChange("status", option)}
+                  variant={values.status === option ? "primary" : "ghost"}
+                />
+              ))}
+            </View>
+            {errors.status ? <Text style={styles.errorText}>{errors.status}</Text> : null}
+          </>
+        ) : null}
       </View>
 
-      <PrimaryButton title={existingAppointment ? "Update Appointment" : "Save Appointment"} onPress={handleSave} />
+      <PrimaryButton
+        title={existingAppointment ? "Update Appointment" : isPatient ? "Book Appointment" : "Save Appointment"}
+        onPress={handleSave}
+      />
       <PrimaryButton title="Cancel" onPress={() => navigation.goBack()} variant="ghost" />
     </ScreenContainer>
   );
