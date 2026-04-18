@@ -6,6 +6,8 @@ const appointmentRoutes = require("./routes/appointmentRoutes");
 const medicalReportCrudRoutes = require("./routes/medicalReportCrudRoutes");
 const doctorRoutes = require("./routes/doctorRoutes");
 const authRoutes = require("./routes/authRoutes");
+const patientRoutes = require("./routes/patientRoutes");
+const scheduleRoutes = require("./routes/scheduleRoutes");
 
 const app = express();
 
@@ -20,6 +22,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/medical-reports", medicalReportCrudRoutes);
 app.use("/api/doctors", doctorRoutes);
+app.use("/api/patients", patientRoutes);
+app.use("/api/schedules", scheduleRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

@@ -112,5 +112,71 @@ export const moduleApi = {
       token,
       endpoint: `/doctors/${doctorId}`,
       method: "DELETE"
+    }),
+
+  getPatients: ({ baseUrl, token }) =>
+    apiRequest({
+      baseUrl,
+      token,
+      endpoint: "/patients"
+    }),
+
+  createPatient: ({ baseUrl, token, payload }) =>
+    apiRequest({
+      baseUrl,
+      token,
+      endpoint: "/patients",
+      method: "POST",
+      body: payload
+    }),
+
+  updatePatient: ({ baseUrl, token, patientId, payload }) =>
+    apiRequest({
+      baseUrl,
+      token,
+      endpoint: `/patients/${patientId}`,
+      method: "PUT",
+      body: payload
+    }),
+
+  deletePatient: ({ baseUrl, token, patientId }) =>
+    apiRequest({
+      baseUrl,
+      token,
+      endpoint: `/patients/${patientId}`,
+      method: "DELETE"
+    }),
+
+  getSchedules: ({ baseUrl, token }) =>
+    apiRequest({
+      baseUrl,
+      token,
+      endpoint: "/schedules"
+    }),
+
+  createSchedule: ({ baseUrl, token, payload }) =>
+    apiRequest({
+      baseUrl,
+      token,
+      endpoint: "/schedules",
+      method: "POST",
+      body: payload
+    }),
+
+  updateSchedule: ({ baseUrl, token, scheduleId, payload }) =>
+    apiRequest({
+      baseUrl,
+      token,
+      endpoint: `/schedules/${scheduleId}`,
+      method: "PUT",
+      body: payload
+    }),
+
+  deleteSchedule: ({ baseUrl, token, scheduleId }) =>
+    apiRequest({
+      baseUrl,
+      token,
+      endpoint: `/schedules/${scheduleId}`,
+      method: "DELETE"
     })
 };

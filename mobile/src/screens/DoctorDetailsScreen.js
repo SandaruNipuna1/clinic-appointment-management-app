@@ -5,10 +5,13 @@ import InfoCard from "../components/InfoCard";
 import PrimaryButton from "../components/PrimaryButton";
 import ScreenContainer from "../components/ScreenContainer";
 import { useAppData } from "../context/AppDataContext";
+import { useAuth } from "../context/AuthContext";
 
 export default function DoctorDetailsScreen({ navigation, route }) {
   const { doctors } = useAppData();
+  const { currentUser } = useAuth();
   const doctor = useMemo(() => doctors.find((item) => item.rawId === route.params?.doctorId), [doctors, route.params?.doctorId]);
+  const canEditDoctors = ["admin", "receptionist"].includes(currentUser?.role);
 
   if (!doctor) {
     return (
@@ -44,7 +47,9 @@ export default function DoctorDetailsScreen({ navigation, route }) {
           </View>
         </View>
       </InfoCard>
-      <PrimaryButton title="Edit Doctor" onPress={() => navigation.navigate("DoctorForm", { doctorId: doctor.rawId })} />
+      {canEditDoctors ? (
+        <PrimaryButton title="Edit Doctor" onPress={() => navigation.navigate("DoctorForm", { doctorId: doctor.rawId })} />
+      ) : null}
       <PrimaryButton title="Back to Doctors" onPress={() => navigation.goBack()} variant="ghost" />
     </ScreenContainer>
   );

@@ -66,12 +66,35 @@ const mapReport = (report) => ({
   additionalNotes: report.additionalNotes || ""
 });
 
+const mapPatient = (patient) => ({
+  rawId: patient._id,
+  id: patient.patientCode || patient._id,
+  name: patient.name,
+  age: String(patient.age ?? ""),
+  gender: patient.gender,
+  phone: patient.phone,
+  email: patient.email,
+  address: patient.address
+});
+
+const mapSchedule = (schedule) => ({
+  rawId: schedule._id,
+  id: schedule.scheduleCode || schedule._id,
+  doctorName: schedule.doctorName,
+  availableDay: schedule.availableDay,
+  startTime: schedule.startTime,
+  endTime: schedule.endTime,
+  status: schedule.status
+});
+
 export function AppDataProvider({ children }) {
   const { apiBaseUrl, token, currentUser, isReady: isAuthReady } = useAuth();
   const [state, setState] = useState({
     doctors: [],
+    patients: [],
     appointments: [],
-    reports: []
+    reports: [],
+    schedules: []
   });
   const [isReady, setIsReady] = useState(false);
 
@@ -79,26 +102,37 @@ export function AppDataProvider({ children }) {
     if (!token) {
       setState({
         doctors: [],
+        patients: [],
         appointments: [],
-        reports: []
+        reports: [],
+        schedules: []
       });
       setIsReady(true);
       return;
     }
 
-    const [doctorData, appointmentData, reportData] = await Promise.all([
+    const [doctorData, patientData, appointmentData, reportData, scheduleData] = await Promise.all([
       moduleApi.getDoctors({ baseUrl: apiBaseUrl, token }),
+      moduleApi.getPatients({ baseUrl: apiBaseUrl, token }).catch((error) => {
+        if (currentUser?.role === "patient") {
+          return [];
+        }
+        throw error;
+      }),
       moduleApi.getAppointments({ baseUrl: apiBaseUrl, token }),
-      moduleApi.getMedicalReports({ baseUrl: apiBaseUrl, token })
+      moduleApi.getMedicalReports({ baseUrl: apiBaseUrl, token }),
+      moduleApi.getSchedules({ baseUrl: apiBaseUrl, token })
     ]);
 
     setState({
       doctors: doctorData.map(mapDoctor),
+      patients: patientData.map(mapPatient),
       appointments: appointmentData.map(mapAppointment),
-      reports: reportData.map(mapReport)
+      reports: reportData.map(mapReport),
+      schedules: scheduleData.map(mapSchedule)
     });
     setIsReady(true);
-  }, [apiBaseUrl, token]);
+  }, [apiBaseUrl, currentUser?.role, token]);
 
   useEffect(() => {
     const load = async () => {
@@ -112,8 +146,10 @@ export function AppDataProvider({ children }) {
         console.warn("Failed to load app data", error);
         setState({
           doctors: [],
+          patients: [],
           appointments: [],
-          reports: []
+          reports: [],
+          schedules: []
         });
         setIsReady(true);
       }
@@ -174,9 +210,12 @@ export function AppDataProvider({ children }) {
       );
 
       return {
+        ...current,
         doctors: nextDoctors,
+        patients: current.patients,
         appointments: nextAppointments,
-        reports: nextReports
+        reports: nextReports,
+        schedules: current.schedules
       };
     });
   };
@@ -191,6 +230,57 @@ export function AppDataProvider({ children }) {
     setState((current) => ({
       ...current,
       doctors: current.doctors.filter((doctor) => doctor.rawId !== doctorId)
+    }));
+  };
+
+  const upsertPatient = async (patient) => {
+    const payload = {
+      name: patient.name.trim(),
+      age: Number(patient.age),
+      gender: patient.gender.trim(),
+      phone: patient.phone.trim(),
+      email: patient.email.trim().toLowerCase(),
+      address: patient.address.trim()
+    };
+
+    const savedPatient = patient.rawId
+      ? await moduleApi.updatePatient({
+          baseUrl: apiBaseUrl,
+          token,
+          patientId: patient.rawId,
+          payload
+        })
+      : await moduleApi.createPatient({
+          baseUrl: apiBaseUrl,
+          token,
+          payload
+        });
+
+    const nextPatient = mapPatient(savedPatient);
+
+    setState((current) => {
+      const exists = current.patients.some((item) => item.rawId === nextPatient.rawId);
+      const nextPatients = exists
+        ? current.patients.map((item) => (item.rawId === nextPatient.rawId ? nextPatient : item))
+        : [nextPatient, ...current.patients];
+
+      return {
+        ...current,
+        patients: nextPatients
+      };
+    });
+  };
+
+  const deletePatient = async (patientId) => {
+    await moduleApi.deletePatient({
+      baseUrl: apiBaseUrl,
+      token,
+      patientId
+    });
+
+    setState((current) => ({
+      ...current,
+      patients: current.patients.filter((patient) => patient.rawId !== patientId)
     }));
   };
 
@@ -308,6 +398,56 @@ export function AppDataProvider({ children }) {
     }));
   };
 
+  const upsertSchedule = async (schedule) => {
+    const payload = {
+      doctorName: schedule.doctorName.trim(),
+      availableDay: schedule.availableDay.trim(),
+      startTime: schedule.startTime.trim(),
+      endTime: schedule.endTime.trim(),
+      status: schedule.status.trim()
+    };
+
+    const savedSchedule = schedule.rawId
+      ? await moduleApi.updateSchedule({
+          baseUrl: apiBaseUrl,
+          token,
+          scheduleId: schedule.rawId,
+          payload
+        })
+      : await moduleApi.createSchedule({
+          baseUrl: apiBaseUrl,
+          token,
+          payload
+        });
+
+    const nextSchedule = mapSchedule(savedSchedule);
+
+    setState((current) => {
+      const exists = current.schedules.some((item) => item.rawId === nextSchedule.rawId);
+      const nextSchedules = exists
+        ? current.schedules.map((item) => (item.rawId === nextSchedule.rawId ? nextSchedule : item))
+        : [nextSchedule, ...current.schedules];
+
+      return {
+        ...current,
+        schedules: nextSchedules
+      };
+    });
+  };
+
+  const deleteSchedule = async (scheduleId) => {
+    await moduleApi.deleteSchedule({
+      baseUrl: apiBaseUrl,
+      token,
+      scheduleId
+    });
+
+    setState((current) => ({
+      ...current,
+      schedules: current.schedules.filter((schedule) => schedule.rawId !== scheduleId)
+    }));
+  };
+
   const resetDemoData = async () => {
     await refreshData();
   };
@@ -320,10 +460,14 @@ export function AppDataProvider({ children }) {
       refreshData,
       upsertDoctor,
       deleteDoctor,
+      upsertPatient,
+      deletePatient,
       upsertAppointment,
       deleteAppointment,
       upsertReport,
       deleteReport,
+      upsertSchedule,
+      deleteSchedule,
       resetDemoData
     }),
     [currentUser, isReady, refreshData, state]

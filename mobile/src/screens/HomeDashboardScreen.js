@@ -23,17 +23,23 @@ const ROLE_META = {
 };
 
 export default function HomeDashboardScreen({ navigation }) {
-  const { doctors, appointments, reports, resetDemoData } = useAppData();
+  const { doctors, patients, appointments, reports, schedules, resetDemoData } = useAppData();
   const { currentUser, logout } = useAuth();
   const roleMeta = ROLE_META[currentUser?.role] || ROLE_META.patient;
 
+  const canViewDoctors = ["admin", "receptionist", "patient"].includes(currentUser?.role);
   const canManageDoctors = ["admin", "receptionist"].includes(currentUser?.role);
+  const canManagePatients = ["admin", "receptionist"].includes(currentUser?.role);
   const canManageAppointments = ["admin", "receptionist", "patient"].includes(currentUser?.role);
   const canManageReports = ["admin", "patient"].includes(currentUser?.role);
+  const canViewSchedules = ["admin", "receptionist", "patient"].includes(currentUser?.role);
+  const canManageSchedules = ["admin", "receptionist"].includes(currentUser?.role);
   const summaryCards = [
     canManageDoctors ? { key: "doctors", value: doctors.length, label: "Doctors" } : null,
+    canManagePatients ? { key: "patients", value: patients.length, label: "Patients" } : null,
     canManageAppointments ? { key: "appointments", value: appointments.length, label: "Appointments" } : null,
-    canManageReports ? { key: "reports", value: reports.length, label: "Reports" } : null
+    canManageReports ? { key: "reports", value: reports.length, label: "Reports" } : null,
+    canViewSchedules ? { key: "schedules", value: schedules.length, label: "Schedules" } : null
   ].filter(Boolean);
 
   return (
@@ -83,15 +89,29 @@ export default function HomeDashboardScreen({ navigation }) {
         </View>
       </View>
 
-      {canManageDoctors ? (
+      {canViewDoctors ? (
         <InfoCard
           title="Doctor Management"
           lines={[
             "View all doctors with quick search and specialization filtering.",
-            "Add, edit, delete, and open detail views for every doctor record."
+            canManageDoctors
+              ? "Add, edit, delete, and open detail views for every doctor record."
+              : "Open doctor details to view specialization, availability, and contact details."
           ]}
         >
           <PrimaryButton title="Open Doctor Module" onPress={() => navigation.navigate("DoctorList")} />
+        </InfoCard>
+      ) : null}
+
+      {canManagePatients ? (
+        <InfoCard
+          title="Patient Management"
+          lines={[
+            "View patients, add new records, update details, and search by name.",
+            "Keep the basic patient contact information organized for the clinic team."
+          ]}
+        >
+          <PrimaryButton title="Open Patient Module" onPress={() => navigation.navigate("PatientList")} />
         </InfoCard>
       ) : null}
 
@@ -116,6 +136,20 @@ export default function HomeDashboardScreen({ navigation }) {
           ]}
         >
           <PrimaryButton title="Open Medical Report Module" onPress={() => navigation.navigate("ReportList")} />
+        </InfoCard>
+      ) : null}
+
+      {canViewSchedules ? (
+        <InfoCard
+          title="Schedule / Availability Management"
+          lines={[
+            "View schedules and filter by doctor name or day to check availability quickly.",
+            canManageSchedules
+              ? "Add, edit, and delete availability slots for the clinic team."
+              : "Open schedules to check when doctors are available."
+          ]}
+        >
+          <PrimaryButton title="Open Schedule Module" onPress={() => navigation.navigate("ScheduleList")} />
         </InfoCard>
       ) : null}
 
@@ -205,16 +239,18 @@ const styles = StyleSheet.create({
   },
   metricRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: 10
   },
   metricCard: {
-    flex: 1,
+    minWidth: 112,
     backgroundColor: "#1a4c57",
     borderRadius: 18,
     paddingVertical: 12,
     paddingHorizontal: 10,
     minHeight: 92,
-    justifyContent: "center"
+    justifyContent: "center",
+    flexGrow: 1
   },
   metricValue: {
     color: "#ffffff",

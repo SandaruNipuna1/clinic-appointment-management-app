@@ -15,7 +15,11 @@ import LoginScreen from "../screens/LoginScreen";
 import MedicalReportDetailScreen from "../screens/MedicalReportDetailScreen";
 import MedicalReportFormScreen from "../screens/MedicalReportFormScreen";
 import MedicalReportListScreen from "../screens/MedicalReportListScreen";
+import PatientFormScreen from "../screens/PatientFormScreen";
+import PatientListScreen from "../screens/PatientListScreen";
 import ProfileScreen from "../screens/ProfileScreen";
+import ScheduleFormScreen from "../screens/ScheduleFormScreen";
+import ScheduleListScreen from "../screens/ScheduleListScreen";
 import SignupScreen from "../screens/SignupScreen";
 
 const Stack = createNativeStackNavigator();
@@ -52,6 +56,8 @@ export default function AppNavigator() {
             <Stack.Screen name="DoctorList" component={DoctorListScreen} options={{ title: "Doctor Management" }} />
             <Stack.Screen name="DoctorForm" component={DoctorManagementFormScreen} options={{ title: "Doctor Form" }} />
             <Stack.Screen name="DoctorDetail" component={DoctorDetailsScreen} options={{ title: "Doctor Details" }} />
+            <Stack.Screen name="PatientList" component={PatientListScreen} options={{ title: "Patient Management" }} />
+            <Stack.Screen name="PatientForm" component={PatientFormScreen} options={{ title: "Patient Form" }} />
             <Stack.Screen name="AppointmentList" component={AppointmentListScreen} options={{ title: "Appointments" }} />
             <Stack.Screen name="AppointmentForm" component={AppointmentFormScreen} options={{ title: "Appointment Form" }} />
             <Stack.Screen
@@ -59,6 +65,8 @@ export default function AppNavigator() {
               component={AppointmentDetailScreen}
               options={{ title: "Appointment Details" }}
             />
+            <Stack.Screen name="ScheduleList" component={ScheduleListScreen} options={{ title: "Schedules" }} />
+            <Stack.Screen name="ScheduleForm" component={ScheduleFormScreen} options={{ title: "Schedule Form" }} />
             <Stack.Screen name="ReportList" component={MedicalReportListScreen} options={{ title: "Medical Reports" }} />
             <Stack.Screen
               name="ReportForm"
