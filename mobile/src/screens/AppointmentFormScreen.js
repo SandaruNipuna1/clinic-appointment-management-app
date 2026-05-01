@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 import FormInput from "../components/FormInput";
 import PrimaryButton from "../components/PrimaryButton";
@@ -8,6 +8,56 @@ import { useAppData } from "../context/AppDataContext";
 import { useAuth } from "../context/AuthContext";
 
 const STATUS_OPTIONS = ["Scheduled", "Completed", "Cancelled"];
+const PERIOD_OPTIONS = ["AM", "PM"];
+
+const convertTo12Hour = (time) => {
+  if (!time) {
+    return { hour: "10", minute: "30", period: "AM" };
+  }
+
+  const [hourText = "10", minute = "30"] = time.split(":");
+  const hourNumber = Number(hourText);
+  const period = hourNumber >= 12 ? "PM" : "AM";
+  const normalizedHour = hourNumber % 12 || 12;
+
+  return {
+    hour: String(normalizedHour),
+    minute,
+    period
+  };
+};
+
+const convertTo24Hour = ({ hour, minute, period }) => {
+  const normalizedHour = Number(hour) % 12;
+  const hour24 = period === "PM" ? normalizedHour + 12 : normalizedHour;
+  const finalHour = period === "AM" && Number(hour) === 12 ? 0 : hour24;
+  return `${String(finalHour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+};
+
+const formatHourInput = (value) => {
+  const digits = value.replace(/\D/g, "").slice(0, 2);
+
+  if (!digits) {
+    return "";
+  }
+
+  const number = Number(digits);
+  if (number <= 0) {
+    return "1";
+  }
+
+  return String(Math.min(number, 12));
+};
+
+const formatMinuteInput = (value) => {
+  const digits = value.replace(/\D/g, "").slice(0, 2);
+
+  if (!digits) {
+    return "";
+  }
+
+  return String(Math.min(Number(digits), 59)).padStart(digits.length === 1 ? 1 : 2, "0");
+};
 
 const validateAppointment = (values, options = {}) => {
   const errors = {};
@@ -23,6 +73,15 @@ const validateAppointment = (values, options = {}) => {
     errors.status = "status is required";
   }
 
+  const timeHour = Number(values.timeHour);
+  const timeMinute = Number(values.timeMinute);
+
+  if (!timeHour || timeHour < 1 || timeHour > 12) {
+    errors.time = "hour must be between 1 and 12";
+  } else if (Number.isNaN(timeMinute) || timeMinute < 0 || timeMinute > 59) {
+    errors.time = "minute must be between 00 and 59";
+  }
+
   return errors;
 };
 
@@ -36,30 +95,44 @@ export default function AppointmentFormScreen({ navigation, route }) {
   );
   const isPatient = currentUser?.role === "patient";
   const canManageAppointments = ["admin", "receptionist"].includes(currentUser?.role);
+  const initialTime = convertTo12Hour(existingAppointment?.time || "10:30");
   const [values, setValues] = useState({
     id: existingAppointment?.id || "",
     patientName: existingAppointment?.patientName || currentUser?.fullName || "",
+    patientId: existingAppointment?.patientId || null,
     doctorId: existingAppointment?.doctorId || doctors[0]?.rawId || "",
     date: existingAppointment?.date || "",
-    time: existingAppointment?.time || "",
+    time: existingAppointment?.time || "10:30",
+    timeHour: initialTime.hour,
+    timeMinute: initialTime.minute,
+    timePeriod: initialTime.period,
     reason: existingAppointment?.reason || "",
     status: existingAppointment?.status || "Scheduled"
   });
   const [errors, setErrors] = useState({});
-  const [patientQuery, setPatientQuery] = useState(existingAppointment?.patientName || "");
-  const [showPatientOptions, setShowPatientOptions] = useState(false);
-
   const selectedDoctorName = doctors.find((doctor) => doctor.rawId === values.doctorId)?.name || "";
   const selectedPatient = patients.find((patient) => patient.rawId === values.patientId) || null;
-  const filteredPatients = useMemo(() => {
-    const normalizedQuery = patientQuery.trim().toLowerCase();
-
-    return patients.filter((patient) => !normalizedQuery || patient.name.toLowerCase().includes(normalizedQuery));
-  }, [patientQuery, patients]);
   const shouldShowStatusEditor = canManageAppointments && Boolean(existingAppointment);
 
   const handleChange = (field, value) => {
     setValues((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleTimeSelection = (field, value) => {
+    setValues((current) => {
+      const nextValues = {
+        ...current,
+        [field]: value
+      };
+
+      nextValues.time = convertTo24Hour({
+        hour: nextValues.timeHour || "0",
+        minute: nextValues.timeMinute || "00",
+        period: nextValues.timePeriod
+      });
+
+      return nextValues;
+    });
   };
 
   const handlePatientSelect = (patient) => {
@@ -68,8 +141,6 @@ export default function AppointmentFormScreen({ navigation, route }) {
       patientId: patient.rawId,
       patientName: patient.name
     }));
-    setPatientQuery(patient.name);
-    setShowPatientOptions(false);
     setErrors((current) => ({ ...current, patientName: undefined }));
   };
 
@@ -123,6 +194,57 @@ export default function AppointmentFormScreen({ navigation, route }) {
     );
   }
 
+  const renderTimeField = () => (
+    <View style={styles.timeSection}>
+      <Text style={styles.filterLabel}>Time</Text>
+      <View style={styles.timeCard}>
+        <View style={styles.timeInputsRow}>
+          <View style={styles.timeInputBlock}>
+            <TextInput
+              style={styles.timeInput}
+              value={values.timeHour}
+              onChangeText={(value) => handleTimeSelection("timeHour", formatHourInput(value))}
+              keyboardType="number-pad"
+              placeholder="10"
+              placeholderTextColor="#8aa0ad"
+              maxLength={2}
+            />
+          </View>
+          <Text style={styles.timeColon}>:</Text>
+          <View style={styles.timeInputBlock}>
+            <TextInput
+              style={styles.timeInput}
+              value={values.timeMinute}
+              onChangeText={(value) => handleTimeSelection("timeMinute", formatMinuteInput(value))}
+              keyboardType="number-pad"
+              placeholder="30"
+              placeholderTextColor="#8aa0ad"
+              maxLength={2}
+            />
+          </View>
+          <View style={styles.periodGroup}>
+            <View style={styles.periodRow}>
+              {PERIOD_OPTIONS.map((option) => {
+                const selected = values.timePeriod === option;
+
+                return (
+                  <Pressable
+                    key={option}
+                    style={[styles.periodChip, selected && styles.periodChipSelected]}
+                    onPress={() => handleTimeSelection("timePeriod", option)}
+                  >
+                    <Text style={[styles.periodChipText, selected && styles.periodChipTextSelected]}>{option}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+        </View>
+      </View>
+      {errors.time ? <Text style={styles.errorText}>{errors.time}</Text> : null}
+    </View>
+  );
+
   return (
     <ScreenContainer>
       <Text style={styles.title}>{existingAppointment ? "Edit appointment" : "Add appointment"}</Text>
@@ -136,58 +258,48 @@ export default function AppointmentFormScreen({ navigation, route }) {
         {existingAppointment ? (
           <FormInput label="Appointment ID" value={existingAppointment.id} onChangeText={() => {}} editable={false} />
         ) : null}
-        <FormInput
-          label="Patient Name"
-          value={values.patientName}
-          onChangeText={(value) => handleChange("patientName", value)}
-          error={errors.patientName}
-          editable={isPatient}
-        />
-        {!isPatient ? (
+        {isPatient ? (
+          <FormInput
+            label="Patient Name"
+            value={values.patientName}
+            onChangeText={(value) => handleChange("patientName", value)}
+            error={errors.patientName}
+            editable={false}
+          />
+        ) : (
           <>
-            <Text style={styles.filterLabel}>Patient selection</Text>
-            <Pressable style={styles.selectorField} onPress={() => setShowPatientOptions((current) => !current)}>
+            <Text style={styles.filterLabel}>Select Patient</Text>
+            <Pressable style={styles.selectorField}>
               <Text style={selectedPatient ? styles.selectorValue : styles.selectorPlaceholder}>
                 {selectedPatient?.name || "Select patient"}
               </Text>
             </Pressable>
-            <FormInput
-              label="Search patient"
-              value={patientQuery}
-              onChangeText={(value) => {
-                setPatientQuery(value);
-                setShowPatientOptions(true);
-              }}
-              placeholder="Search patient by name"
-            />
-            {showPatientOptions ? (
-              <View style={styles.optionGrid}>
-                {filteredPatients.length > 0 ? (
-                  filteredPatients.map((patient) => (
-                    <Pressable
-                      key={patient.rawId}
-                      style={[styles.optionChip, values.patientId === patient.rawId && styles.optionChipSelected]}
-                      onPress={() => handlePatientSelect(patient)}
+            <View style={styles.optionGrid}>
+              {patients.length > 0 ? (
+                patients.map((patient) => (
+                  <Pressable
+                    key={patient.rawId}
+                    style={[styles.optionChip, values.patientId === patient.rawId && styles.optionChipSelected]}
+                    onPress={() => handlePatientSelect(patient)}
+                  >
+                    <Text
+                      style={[
+                        styles.optionChipText,
+                        values.patientId === patient.rawId && styles.optionChipTextSelected
+                      ]}
                     >
-                      <Text
-                        style={[
-                          styles.optionChipText,
-                          values.patientId === patient.rawId && styles.optionChipTextSelected
-                        ]}
-                      >
-                        {patient.name}
-                      </Text>
-                    </Pressable>
-                  ))
-                ) : (
-                  <Text style={styles.emptyOptionText}>No patient matches your search.</Text>
-                )}
-              </View>
-            ) : null}
+                      {patient.name}
+                    </Text>
+                  </Pressable>
+                ))
+              ) : (
+                <Text style={styles.emptyOptionText}>No patients available yet.</Text>
+              )}
+            </View>
           </>
-        ) : null}
+        )}
 
-        <Text style={styles.filterLabel}>Doctor selection</Text>
+        <Text style={styles.filterLabel}>Select Doctor</Text>
         <View style={styles.filterWrap}>
           {doctors.map((doctor) => (
             <PrimaryButton
@@ -201,7 +313,7 @@ export default function AppointmentFormScreen({ navigation, route }) {
         {errors.doctorId ? <Text style={styles.errorText}>{errors.doctorId}</Text> : null}
 
         <FormInput label="Date" value={values.date} onChangeText={(value) => handleChange("date", value)} error={errors.date} placeholder="YYYY-MM-DD" />
-        <FormInput label="Time" value={values.time} onChangeText={(value) => handleChange("time", value)} error={errors.time} placeholder="10:30" />
+        {renderTimeField()}
         <FormInput label="Reason" value={values.reason} onChangeText={(value) => handleChange("reason", value)} error={errors.reason} multiline />
 
         {shouldShowStatusEditor ? (
@@ -289,6 +401,75 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 10,
     marginBottom: 12
+  },
+  timeSection: {
+    marginBottom: 10
+  },
+  timeCard: {
+    borderWidth: 1,
+    borderColor: "#d3dee5",
+    borderRadius: 18,
+    paddingHorizontal: 12,
+    paddingVertical: 14,
+    backgroundColor: "#f9fcfd",
+    marginBottom: 8
+  },
+  timeInputsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8
+  },
+  timeInputBlock: {
+    width: 68
+  },
+  timeInput: {
+    borderWidth: 1,
+    borderColor: "#d3dee5",
+    borderRadius: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: "#ffffff",
+    fontSize: 18,
+    color: "#12303a",
+    fontWeight: "700",
+    textAlign: "center"
+  },
+  timeColon: {
+    fontSize: 30,
+    lineHeight: 36,
+    fontWeight: "700",
+    color: "#38525b",
+    paddingTop: 2
+  },
+  periodGroup: {
+    flex: 1
+  },
+  periodRow: {
+    flexDirection: "row",
+    gap: 8
+  },
+  periodChip: {
+    flex: 1,
+    minWidth: 64,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#d3dee5",
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    backgroundColor: "#ffffff"
+  },
+  periodChipSelected: {
+    backgroundColor: "#0f766e",
+    borderColor: "#0f766e"
+  },
+  periodChipText: {
+    color: "#29444b",
+    fontWeight: "700",
+    fontSize: 15
+  },
+  periodChipTextSelected: {
+    color: "#ffffff"
   },
   optionChip: {
     borderWidth: 1,

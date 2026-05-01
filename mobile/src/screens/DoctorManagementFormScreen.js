@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 import FormInput from "../components/FormInput";
 import PrimaryButton from "../components/PrimaryButton";
@@ -21,15 +21,85 @@ const SPECIALIZATION_OPTIONS = [
 ];
 
 const DAY_OPTIONS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const PERIOD_OPTIONS = ["AM", "PM"];
+
+const convertTo12Hour = (time) => {
+  if (!time) {
+    return { hour: "9", minute: "00", period: "AM" };
+  }
+
+  const [hourText = "09", minute = "00"] = time.split(":");
+  const hourNumber = Number(hourText);
+  const period = hourNumber >= 12 ? "PM" : "AM";
+  const normalizedHour = hourNumber % 12 || 12;
+
+  return {
+    hour: String(normalizedHour),
+    minute,
+    period
+  };
+};
+
+const convertTo24Hour = ({ hour, minute, period }) => {
+  const normalizedHour = Number(hour) % 12;
+  const hour24 = period === "PM" ? normalizedHour + 12 : normalizedHour;
+  const finalHour = period === "AM" && Number(hour) === 12 ? 0 : hour24;
+  return `${String(finalHour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+};
+
+const formatHourInput = (value) => {
+  const digits = value.replace(/\D/g, "").slice(0, 2);
+  if (!digits) {
+    return "";
+  }
+  return String(Math.min(Number(digits), 12));
+};
+
+const formatMinuteInput = (value) => {
+  const digits = value.replace(/\D/g, "").slice(0, 2);
+  if (!digits) {
+    return "";
+  }
+  return String(Math.min(Number(digits), 59)).padStart(digits.length === 1 ? 1 : 2, "0");
+};
 
 const validateDoctor = (values, doctors, currentId) => {
   const errors = {};
 
-  ["name", "specialization", "phone", "email", "availabilityDay", "availabilityStartTime", "availabilityEndTime"].forEach((field) => {
+  ["name", "specialization", "phone", "email"].forEach((field) => {
     if (!values[field].trim()) {
       errors[field] = `${field} is required`;
     }
   });
+
+  if (!Array.isArray(values.availabilityDays) || values.availabilityDays.length === 0) {
+    errors.availabilityDays = "Select at least one available day";
+  }
+
+  if (!values.availabilityStartTime.trim()) {
+    errors.availabilityStartTime = "start time is required";
+  }
+
+  if (!values.availabilityEndTime.trim()) {
+    errors.availabilityEndTime = "end time is required";
+  }
+
+  const startHour = Number(values.availabilityStartHour);
+  const endHour = Number(values.availabilityEndHour);
+  const startMinute = Number(values.availabilityStartMinute);
+  const endMinute = Number(values.availabilityEndMinute);
+
+  if (!startHour || startHour < 1 || startHour > 12) {
+    errors.availabilityStartTime = "start hour must be between 1 and 12";
+  } else if (Number.isNaN(startMinute) || startMinute < 0 || startMinute > 59) {
+    errors.availabilityStartTime = "start minute must be between 00 and 59";
+  }
+
+  if (!endHour || endHour < 1 || endHour > 12) {
+    errors.availabilityEndTime = "end hour must be between 1 and 12";
+  } else if (Number.isNaN(endMinute) || endMinute < 0 || endMinute > 59) {
+    errors.availabilityEndTime = "end minute must be between 00 and 59";
+  }
 
   const duplicateEmail = doctors.find(
     (doctor) => doctor.email.toLowerCase() === values.email.trim().toLowerCase() && doctor.id !== currentId
@@ -47,6 +117,8 @@ export default function DoctorManagementFormScreen({ navigation, route }) {
   const { currentUser } = useAuth();
   const doctorId = route.params?.doctorId;
   const existingDoctor = useMemo(() => doctors.find((doctor) => doctor.rawId === doctorId), [doctors, doctorId]);
+  const initialStartTime = convertTo12Hour(existingDoctor?.availabilityStartTime || "09:00");
+  const initialEndTime = convertTo12Hour(existingDoctor?.availabilityEndTime || "16:00");
   const [values, setValues] = useState({
     id: existingDoctor?.id || "",
     name: existingDoctor?.name || "",
@@ -54,8 +126,15 @@ export default function DoctorManagementFormScreen({ navigation, route }) {
     phone: existingDoctor?.phone || "",
     email: existingDoctor?.email || "",
     availabilityDay: existingDoctor?.availabilityDay || "",
-    availabilityStartTime: existingDoctor?.availabilityStartTime || "",
-    availabilityEndTime: existingDoctor?.availabilityEndTime || "",
+    availabilityDays: existingDoctor?.availabilityDays || [],
+    availabilityStartTime: existingDoctor?.availabilityStartTime || "09:00",
+    availabilityEndTime: existingDoctor?.availabilityEndTime || "16:00",
+    availabilityStartHour: initialStartTime.hour,
+    availabilityStartMinute: initialStartTime.minute,
+    availabilityStartPeriod: initialStartTime.period,
+    availabilityEndHour: initialEndTime.hour,
+    availabilityEndMinute: initialEndTime.minute,
+    availabilityEndPeriod: initialEndTime.period,
     roomNumber: existingDoctor?.roomNumber || "",
   });
   const [errors, setErrors] = useState({});
@@ -64,6 +143,54 @@ export default function DoctorManagementFormScreen({ navigation, route }) {
 
   const handleChange = (field, value) => {
     setValues((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleDayToggle = (day) => {
+    setValues((current) => {
+      const exists = current.availabilityDays.includes(day);
+      const nextDays = exists
+        ? current.availabilityDays.filter((item) => item !== day)
+        : [...current.availabilityDays, day];
+
+      return {
+        ...current,
+        availabilityDays: nextDays,
+        availabilityDay: nextDays[0] || ""
+      };
+    });
+  };
+
+  const syncTime = (timeKey, nextValues) => {
+    if (timeKey === "start") {
+      return convertTo24Hour({
+        hour: nextValues.availabilityStartHour || "0",
+        minute: nextValues.availabilityStartMinute || "00",
+        period: nextValues.availabilityStartPeriod
+      });
+    }
+
+    return convertTo24Hour({
+      hour: nextValues.availabilityEndHour || "0",
+      minute: nextValues.availabilityEndMinute || "00",
+      period: nextValues.availabilityEndPeriod
+    });
+  };
+
+  const handleTimeSelection = (timeKey, field, value) => {
+    setValues((current) => {
+      const nextValues = {
+        ...current,
+        [field]: value
+      };
+
+      if (timeKey === "start") {
+        nextValues.availabilityStartTime = syncTime("start", nextValues);
+      } else {
+        nextValues.availabilityEndTime = syncTime("end", nextValues);
+      }
+
+      return nextValues;
+    });
   };
 
   const handleSave = async () => {
@@ -83,6 +210,7 @@ export default function DoctorManagementFormScreen({ navigation, route }) {
         phone: values.phone.trim(),
         email: values.email.trim().toLowerCase(),
         availabilityDay: values.availabilityDay.trim(),
+        availabilityDays: values.availabilityDays,
         availabilityStartTime: values.availabilityStartTime.trim(),
         availabilityEndTime: values.availabilityEndTime.trim(),
         roomNumber: values.roomNumber.trim(),
@@ -144,8 +272,8 @@ export default function DoctorManagementFormScreen({ navigation, route }) {
         <FormInput label="Email" value={values.email} onChangeText={(value) => handleChange("email", value)} error={errors.email} />
         <Text style={styles.filterLabel}>Available Day</Text>
         <Pressable style={styles.selectorField} onPress={() => setShowDays((current) => !current)}>
-          <Text style={values.availabilityDay ? styles.selectorValue : styles.selectorPlaceholder}>
-            {values.availabilityDay || "Select available day"}
+          <Text style={values.availabilityDays.length > 0 ? styles.selectorValue : styles.selectorPlaceholder}>
+            {values.availabilityDays.length > 0 ? values.availabilityDays.join(", ") : "Select available days"}
           </Text>
         </Pressable>
         {showDays ? (
@@ -153,39 +281,129 @@ export default function DoctorManagementFormScreen({ navigation, route }) {
             {DAY_OPTIONS.map((option) => (
               <Pressable
                 key={option}
-                style={[styles.optionChip, values.availabilityDay === option && styles.optionChipSelected]}
-                onPress={() => {
-                  handleChange("availabilityDay", option);
-                  setShowDays(false);
-                }}
+                style={[styles.optionChip, values.availabilityDays.includes(option) && styles.optionChipSelected]}
+                onPress={() => handleDayToggle(option)}
               >
-                <Text style={[styles.optionChipText, values.availabilityDay === option && styles.optionChipTextSelected]}>
+                <Text style={[styles.optionChipText, values.availabilityDays.includes(option) && styles.optionChipTextSelected]}>
                   {option}
                 </Text>
               </Pressable>
             ))}
           </View>
         ) : null}
-        {errors.availabilityDay ? <Text style={styles.errorText}>{errors.availabilityDay}</Text> : null}
-        <FormInput
-          label="Start Time"
-          value={values.availabilityStartTime}
-          onChangeText={(value) => handleChange("availabilityStartTime", value)}
-          error={errors.availabilityStartTime}
-          placeholder="09:00"
-        />
-        <FormInput
-          label="End Time"
-          value={values.availabilityEndTime}
-          onChangeText={(value) => handleChange("availabilityEndTime", value)}
-          error={errors.availabilityEndTime}
-          placeholder="16:00"
-        />
+        {errors.availabilityDays ? <Text style={styles.errorText}>{errors.availabilityDays}</Text> : null}
+        <View style={styles.timeSection}>
+          <Text style={styles.filterLabel}>Start Time</Text>
+          <View style={styles.timeInlineRow}>
+            <View style={styles.timeInputBlock}>
+              <TextInput
+                style={styles.timeInput}
+                value={values.availabilityStartHour}
+                onChangeText={(value) =>
+                  handleTimeSelection("start", "availabilityStartHour", formatHourInput(value))
+                }
+                keyboardType="number-pad"
+                placeholder="9"
+                placeholderTextColor="#8aa0ad"
+                maxLength={2}
+              />
+            </View>
+            <Text style={styles.timeColon}>:</Text>
+            <View style={styles.timeInputBlock}>
+              <TextInput
+                style={styles.timeInput}
+                value={values.availabilityStartMinute}
+                onChangeText={(value) =>
+                  handleTimeSelection("start", "availabilityStartMinute", formatMinuteInput(value))
+                }
+                keyboardType="number-pad"
+                placeholder="00"
+                placeholderTextColor="#8aa0ad"
+                maxLength={2}
+              />
+            </View>
+            <View style={styles.periodGroup}>
+              <View style={styles.periodRow}>
+                {PERIOD_OPTIONS.map((option) => (
+                  <Pressable
+                    key={`start-period-${option}`}
+                    style={[styles.periodChip, values.availabilityStartPeriod === option && styles.periodChipSelected]}
+                    onPress={() => handleTimeSelection("start", "availabilityStartPeriod", option)}
+                  >
+                    <Text
+                      style={[
+                        styles.periodChipText,
+                        values.availabilityStartPeriod === option && styles.periodChipTextSelected
+                      ]}
+                    >
+                      {option}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          </View>
+          {errors.availabilityStartTime ? <Text style={styles.errorText}>{errors.availabilityStartTime}</Text> : null}
+        </View>
+        <View style={styles.timeSection}>
+          <Text style={styles.filterLabel}>End Time</Text>
+          <View style={styles.timeInlineRow}>
+            <View style={styles.timeInputBlock}>
+              <TextInput
+                style={styles.timeInput}
+                value={values.availabilityEndHour}
+                onChangeText={(value) =>
+                  handleTimeSelection("end", "availabilityEndHour", formatHourInput(value))
+                }
+                keyboardType="number-pad"
+                placeholder="4"
+                placeholderTextColor="#8aa0ad"
+                maxLength={2}
+              />
+            </View>
+            <Text style={styles.timeColon}>:</Text>
+            <View style={styles.timeInputBlock}>
+              <TextInput
+                style={styles.timeInput}
+                value={values.availabilityEndMinute}
+                onChangeText={(value) =>
+                  handleTimeSelection("end", "availabilityEndMinute", formatMinuteInput(value))
+                }
+                keyboardType="number-pad"
+                placeholder="00"
+                placeholderTextColor="#8aa0ad"
+                maxLength={2}
+              />
+            </View>
+            <View style={styles.periodGroup}>
+              <View style={styles.periodRow}>
+                {PERIOD_OPTIONS.map((option) => (
+                  <Pressable
+                    key={`end-period-${option}`}
+                    style={[styles.periodChip, values.availabilityEndPeriod === option && styles.periodChipSelected]}
+                    onPress={() => handleTimeSelection("end", "availabilityEndPeriod", option)}
+                  >
+                    <Text
+                      style={[
+                        styles.periodChipText,
+                        values.availabilityEndPeriod === option && styles.periodChipTextSelected
+                      ]}
+                    >
+                      {option}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          </View>
+          {errors.availabilityEndTime ? <Text style={styles.errorText}>{errors.availabilityEndTime}</Text> : null}
+        </View>
         <FormInput
           label="Room Number"
           value={values.roomNumber}
-          onChangeText={(value) => handleChange("roomNumber", value)}
-          placeholder="Room 12"
+          onChangeText={(value) => handleChange("roomNumber", value.replace(/\D/g, ""))}
+          placeholder="12"
+          keyboardType="number-pad"
         />
       </View>
 
@@ -254,6 +472,25 @@ const styles = StyleSheet.create({
     gap: 10,
     marginBottom: 12
   },
+  timeSection: {
+    marginBottom: 10
+  },
+  timeInlineRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 6
+  },
+  timeInputBlock: {
+    width: 68
+  },
+  periodGroup: {
+    flex: 1
+  },
+  periodRow: {
+    flexDirection: "row",
+    gap: 8
+  },
   optionChip: {
     borderWidth: 1,
     borderColor: "#d3dee5",
@@ -273,6 +510,47 @@ const styles = StyleSheet.create({
   },
   optionChipTextSelected: {
     color: "#ffffff"
+  },
+  periodChip: {
+    minWidth: 74,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#d3dee5",
+    borderRadius: 999,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#ffffff"
+  },
+  periodChipSelected: {
+    backgroundColor: "#0f766e",
+    borderColor: "#0f766e"
+  },
+  periodChipText: {
+    color: "#29444b",
+    fontWeight: "700",
+    fontSize: 15
+  },
+  periodChipTextSelected: {
+    color: "#ffffff"
+  },
+  timeInput: {
+    borderWidth: 1,
+    borderColor: "#d3dee5",
+    borderRadius: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: "#ffffff",
+    fontSize: 18,
+    color: "#12303a",
+    fontWeight: "700",
+    textAlign: "center"
+  },
+  timeColon: {
+    fontSize: 30,
+    lineHeight: 36,
+    fontWeight: "700",
+    color: "#38525b",
+    paddingTop: 2
   },
   errorText: {
     color: "#dc2626",

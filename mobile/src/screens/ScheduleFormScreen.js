@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 import FormInput from "../components/FormInput";
 import PrimaryButton from "../components/PrimaryButton";
@@ -9,6 +9,56 @@ import { useAuth } from "../context/AuthContext";
 
 const DAY_OPTIONS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const STATUS_OPTIONS = ["Available", "Unavailable"];
+const PERIOD_OPTIONS = ["AM", "PM"];
+
+const convertTo12Hour = (time) => {
+  if (!time) {
+    return { hour: "9", minute: "00", period: "AM" };
+  }
+
+  const [hourText = "09", minute = "00"] = time.split(":");
+  const hourNumber = Number(hourText);
+  const period = hourNumber >= 12 ? "PM" : "AM";
+  const normalizedHour = hourNumber % 12 || 12;
+
+  return {
+    hour: String(normalizedHour),
+    minute,
+    period
+  };
+};
+
+const convertTo24Hour = ({ hour, minute, period }) => {
+  const normalizedHour = Number(hour) % 12;
+  const hour24 = period === "PM" ? normalizedHour + 12 : normalizedHour;
+  const finalHour = period === "AM" && Number(hour) === 12 ? 0 : hour24;
+  return `${String(finalHour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+};
+
+const formatHourInput = (value) => {
+  const digits = value.replace(/\D/g, "").slice(0, 2);
+
+  if (!digits) {
+    return "";
+  }
+
+  const number = Number(digits);
+  if (number <= 0) {
+    return "1";
+  }
+
+  return String(Math.min(number, 12));
+};
+
+const formatMinuteInput = (value) => {
+  const digits = value.replace(/\D/g, "").slice(0, 2);
+
+  if (!digits) {
+    return "";
+  }
+
+  return String(Math.min(Number(digits), 59)).padStart(digits.length === 1 ? 1 : 2, "0");
+};
 
 const validateSchedule = (values) => {
   const errors = {};
@@ -34,11 +84,19 @@ export default function ScheduleFormScreen({ navigation, route }) {
     () => schedules.find((schedule) => schedule.rawId === scheduleId),
     [scheduleId, schedules]
   );
+  const initialStartTime = convertTo12Hour(existingSchedule?.startTime || "09:00");
+  const initialEndTime = convertTo12Hour(existingSchedule?.endTime || "17:00");
   const [values, setValues] = useState({
     doctorName: existingSchedule?.doctorName || doctors[0]?.name || "",
     availableDays: existingSchedule?.availableDays?.length ? existingSchedule.availableDays : ["Monday"],
-    startTime: existingSchedule?.startTime || "",
-    endTime: existingSchedule?.endTime || "",
+    startTime: existingSchedule?.startTime || "09:00",
+    endTime: existingSchedule?.endTime || "17:00",
+    startHour: initialStartTime.hour,
+    startMinute: initialStartTime.minute,
+    startPeriod: initialStartTime.period,
+    endHour: initialEndTime.hour,
+    endMinute: initialEndTime.minute,
+    endPeriod: initialEndTime.period,
     status: existingSchedule?.status || "Available"
   });
   const [errors, setErrors] = useState({});
@@ -48,6 +106,31 @@ export default function ScheduleFormScreen({ navigation, route }) {
 
   const handleChange = (field, value) => {
     setValues((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleTimeSelection = (timeKey, field, value) => {
+    setValues((current) => {
+      const nextValues = {
+        ...current,
+        [field]: value
+      };
+
+      if (timeKey === "start") {
+        nextValues.startTime = convertTo24Hour({
+          hour: nextValues.startHour || "0",
+          minute: nextValues.startMinute || "00",
+          period: nextValues.startPeriod
+        });
+      } else {
+        nextValues.endTime = convertTo24Hour({
+          hour: nextValues.endHour || "0",
+          minute: nextValues.endMinute || "00",
+          period: nextValues.endPeriod
+        });
+      }
+
+      return nextValues;
+    });
   };
 
   const toggleDay = (day) => {
@@ -61,6 +144,57 @@ export default function ScheduleFormScreen({ navigation, route }) {
       };
     });
   };
+
+  const renderTimeField = (label, timeKey, hourField, minuteField, periodField, errorKey) => (
+    <View style={styles.timeSection}>
+      <Text style={styles.filterLabel}>{label}</Text>
+      <View style={styles.timeCard}>
+        <View style={styles.timeInputsRow}>
+          <View style={styles.timeInputBlock}>
+            <TextInput
+              style={styles.timeInput}
+              value={values[hourField]}
+              onChangeText={(value) => handleTimeSelection(timeKey, hourField, formatHourInput(value))}
+              keyboardType="number-pad"
+              placeholder={timeKey === "start" ? "9" : "5"}
+              placeholderTextColor="#8aa0ad"
+              maxLength={2}
+            />
+          </View>
+          <Text style={styles.timeColon}>:</Text>
+          <View style={styles.timeInputBlock}>
+            <TextInput
+              style={styles.timeInput}
+              value={values[minuteField]}
+              onChangeText={(value) => handleTimeSelection(timeKey, minuteField, formatMinuteInput(value))}
+              keyboardType="number-pad"
+              placeholder="00"
+              placeholderTextColor="#8aa0ad"
+              maxLength={2}
+            />
+          </View>
+          <View style={styles.periodGroup}>
+            <View style={styles.periodRow}>
+              {PERIOD_OPTIONS.map((option) => {
+                const selected = values[periodField] === option;
+
+                return (
+                  <Pressable
+                    key={`${timeKey}-${option}`}
+                    style={[styles.periodChip, selected && styles.periodChipSelected]}
+                    onPress={() => handleTimeSelection(timeKey, periodField, option)}
+                  >
+                    <Text style={[styles.periodChipText, selected && styles.periodChipTextSelected]}>{option}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+        </View>
+      </View>
+      {errors[errorKey] ? <Text style={styles.errorText}>{errors[errorKey]}</Text> : null}
+    </View>
+  );
 
   const handleSave = async () => {
     const nextErrors = validateSchedule(values);
@@ -99,13 +233,6 @@ export default function ScheduleFormScreen({ navigation, route }) {
       <Text style={styles.subtitle}>Fill in the doctor, day, hours, and status for this availability slot.</Text>
 
       <View style={styles.panel}>
-        <FormInput
-          label="Selected Doctor"
-          value={values.doctorName}
-          onChangeText={() => {}}
-          error={errors.doctorName}
-          editable={false}
-        />
         <Text style={styles.filterLabel}>Select Doctor</Text>
         <Pressable style={styles.selectorField} onPress={() => setShowDoctors((current) => !current)}>
           <Text style={values.doctorName ? styles.selectorValue : styles.selectorPlaceholder}>
@@ -144,20 +271,8 @@ export default function ScheduleFormScreen({ navigation, route }) {
         </View>
         {errors.availableDays ? <Text style={styles.errorText}>{errors.availableDays}</Text> : null}
 
-        <FormInput
-          label="Start Time"
-          value={values.startTime}
-          onChangeText={(value) => handleChange("startTime", value)}
-          error={errors.startTime}
-          placeholder="09:00"
-        />
-        <FormInput
-          label="End Time"
-          value={values.endTime}
-          onChangeText={(value) => handleChange("endTime", value)}
-          error={errors.endTime}
-          placeholder="17:00"
-        />
+        {renderTimeField("Start Time", "start", "startHour", "startMinute", "startPeriod", "startTime")}
+        {renderTimeField("End Time", "end", "endHour", "endMinute", "endPeriod", "endTime")}
 
         <Text style={styles.filterLabel}>Status</Text>
         <View style={styles.filterWrap}>
@@ -238,6 +353,52 @@ const styles = StyleSheet.create({
     gap: 10,
     marginBottom: 12
   },
+  timeSection: {
+    marginBottom: 10
+  },
+  timeCard: {
+    borderWidth: 1,
+    borderColor: "#d3dee5",
+    borderRadius: 18,
+    paddingHorizontal: 12,
+    paddingVertical: 14,
+    backgroundColor: "#f9fcfd",
+    marginBottom: 8
+  },
+  timeInputsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8
+  },
+  timeInputBlock: {
+    width: 68
+  },
+  timeInput: {
+    borderWidth: 1,
+    borderColor: "#d3dee5",
+    borderRadius: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: "#ffffff",
+    fontSize: 18,
+    color: "#12303a",
+    fontWeight: "700",
+    textAlign: "center"
+  },
+  timeColon: {
+    fontSize: 30,
+    lineHeight: 36,
+    fontWeight: "700",
+    color: "#38525b",
+    paddingTop: 2
+  },
+  periodGroup: {
+    flex: 1
+  },
+  periodRow: {
+    flexDirection: "row",
+    gap: 8
+  },
   optionChip: {
     borderWidth: 1,
     borderColor: "#d3dee5",
@@ -256,6 +417,29 @@ const styles = StyleSheet.create({
     fontSize: 14
   },
   optionChipTextSelected: {
+    color: "#ffffff"
+  },
+  periodChip: {
+    flex: 1,
+    minWidth: 64,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#d3dee5",
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    backgroundColor: "#ffffff"
+  },
+  periodChipSelected: {
+    backgroundColor: "#0f766e",
+    borderColor: "#0f766e"
+  },
+  periodChipText: {
+    color: "#29444b",
+    fontWeight: "700",
+    fontSize: 15
+  },
+  periodChipTextSelected: {
     color: "#ffffff"
   },
   errorText: {

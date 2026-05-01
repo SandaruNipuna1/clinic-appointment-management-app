@@ -10,6 +10,7 @@ export default function FormInput({
   multiline = false,
   editable = true,
   secureTextEntry = false,
+  keyboardType,
   rightActionLabel,
   onRightActionPress
 }) {
@@ -26,6 +27,7 @@ export default function FormInput({
           multiline={multiline}
           editable={editable}
           secureTextEntry={secureTextEntry}
+          keyboardType={keyboardType}
         />
         {rightActionLabel ? (
           <Pressable style={styles.actionButton} onPress={onRightActionPress}>
