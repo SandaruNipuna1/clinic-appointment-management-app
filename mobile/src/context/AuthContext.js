@@ -6,7 +6,7 @@ const AUTH_STORAGE_KEY = "clinic_frontend_auth_v1";
 
 const AuthContext = createContext(null);
 
-const DEFAULT_API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "http://192.168.8.191:5001/api";
+const DEFAULT_API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "";
 
 export function AuthProvider({ children }) {
   const [authState, setAuthState] = useState({
@@ -70,6 +70,11 @@ export function AuthProvider({ children }) {
 
   const login = async ({ email, password, apiBaseUrl }) => {
     const nextBaseUrl = apiBaseUrl?.trim() || authState.apiBaseUrl || DEFAULT_API_BASE_URL;
+
+    if (!nextBaseUrl) {
+      throw new Error("API base URL is not configured");
+    }
+
     const data = await authApi.login({
       baseUrl: nextBaseUrl,
       payload: {
@@ -87,6 +92,11 @@ export function AuthProvider({ children }) {
 
   const signup = async ({ fullName, email, password, role, apiBaseUrl }) => {
     const nextBaseUrl = apiBaseUrl?.trim() || authState.apiBaseUrl || DEFAULT_API_BASE_URL;
+
+    if (!nextBaseUrl) {
+      throw new Error("API base URL is not configured");
+    }
+
     const data = await authApi.signup({
       baseUrl: nextBaseUrl,
       payload: {
