@@ -45,9 +45,9 @@ Set `MONGODB_URI` in `backend/.env` if your local MongoDB URL differs from the d
 
 Set `EXPO_PUBLIC_API_BASE_URL` in `mobile/.env` to the backend URL your device or simulator can reach.
 
-- iOS simulator: `http://localhost:5001/api/appointments`
-- Android emulator: `http://10.0.2.2:5001/api/appointments`
-- Physical phone: `http://YOUR_COMPUTER_LOCAL_IP:5001/api/appointments`
+- iOS simulator: `http://localhost:5001/api`
+- Android emulator: `http://10.0.2.2:5001/api`
+- Physical phone: `http://YOUR_COMPUTER_LOCAL_IP:5001/api`
 
 ### 3. Start MongoDB
 

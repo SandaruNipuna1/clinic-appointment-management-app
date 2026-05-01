@@ -1,7 +1,42 @@
+const API_ROUTE_SEGMENT = "api";
+
+export function normalizeApiBaseUrl(baseUrl) {
+  const trimmedBaseUrl = baseUrl?.trim();
+
+  if (!trimmedBaseUrl) {
+    return "";
+  }
+
+  const withoutTrailingSlash = trimmedBaseUrl.replace(/\/+$/, "");
+
+  try {
+    const url = new URL(withoutTrailingSlash);
+    const pathParts = url.pathname.split("/").filter(Boolean);
+    const apiSegmentIndex = pathParts.indexOf(API_ROUTE_SEGMENT);
+
+    if (apiSegmentIndex >= 0) {
+      url.pathname = `/${pathParts.slice(0, apiSegmentIndex + 1).join("/")}`;
+    } else {
+      url.pathname = `${url.pathname.replace(/\/+$/, "")}/${API_ROUTE_SEGMENT}`;
+    }
+
+    url.search = "";
+    url.hash = "";
+
+    return url.toString().replace(/\/+$/, "");
+  } catch (error) {
+    const apiPathMatch = withoutTrailingSlash.match(/^(.*?\/api)(?:\/.*)?$/);
+
+    return apiPathMatch ? apiPathMatch[1] : `${withoutTrailingSlash}/${API_ROUTE_SEGMENT}`;
+  }
+}
+
 export async function apiRequest({ baseUrl, token, endpoint, method = "GET", body }) {
+  const normalizedBaseUrl = normalizeApiBaseUrl(baseUrl);
+
   if (typeof window !== "undefined") {
     console.log("API request", {
-      url: `${baseUrl}${endpoint}`,
+      url: `${normalizedBaseUrl}${endpoint}`,
       method,
       body
     });
@@ -15,7 +50,7 @@ export async function apiRequest({ baseUrl, token, endpoint, method = "GET", bod
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${baseUrl}${endpoint}`, {
+  const response = await fetch(`${normalizedBaseUrl}${endpoint}`, {
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined

@@ -8,7 +8,7 @@ const {
   deleteMedicalReport,
   uploadMedicalReportAttachment
 } = require("../controllers/medicalReportCrudController");
-const { protect, adminOnly } = require("../middleware/authMiddleware");
+const { protect, adminOnly, adminOrReceptionist, reportViewer } = require("../middleware/authMiddleware");
 const { upload } = require("../middleware/uploadMiddleware");
 const validateRequest = require("../middleware/validateRequest");
 const {
@@ -19,9 +19,9 @@ const {
 
 const router = express.Router();
 
-router.get("/", protect, getMedicalReports);
-router.get("/:id", protect, medicalReportIdParamValidation, validateRequest, getMedicalReportById);
-router.post("/", protect, adminOnly, createMedicalReportValidation, validateRequest, createMedicalReport);
+router.get("/", protect, reportViewer, getMedicalReports);
+router.get("/:id", protect, reportViewer, medicalReportIdParamValidation, validateRequest, getMedicalReportById);
+router.post("/", protect, adminOrReceptionist, createMedicalReportValidation, validateRequest, createMedicalReport);
 router.post(
   "/:id/attachment",
   protect,

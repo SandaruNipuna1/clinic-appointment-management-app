@@ -1,12 +1,13 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { authApi } from "../api/authApi";
+import { normalizeApiBaseUrl } from "../api/apiClient";
 
 const AUTH_STORAGE_KEY = "clinic_frontend_auth_v1";
 
 const AuthContext = createContext(null);
 
-const DEFAULT_API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "";
+const DEFAULT_API_BASE_URL = normalizeApiBaseUrl(process.env.EXPO_PUBLIC_API_BASE_URL || "");
 
 export function AuthProvider({ children }) {
   const [authState, setAuthState] = useState({
@@ -23,7 +24,7 @@ export function AuthProvider({ children }) {
         const saved = await AsyncStorage.getItem(AUTH_STORAGE_KEY);
         if (saved) {
           const parsed = JSON.parse(saved);
-          const nextBaseUrl = parsed.apiBaseUrl || DEFAULT_API_BASE_URL;
+          const nextBaseUrl = normalizeApiBaseUrl(parsed.apiBaseUrl || DEFAULT_API_BASE_URL);
           const nextToken = parsed.token || "";
 
           if (nextToken) {
@@ -69,7 +70,7 @@ export function AuthProvider({ children }) {
   };
 
   const login = async ({ email, password, apiBaseUrl }) => {
-    const nextBaseUrl = apiBaseUrl?.trim() || authState.apiBaseUrl || DEFAULT_API_BASE_URL;
+    const nextBaseUrl = normalizeApiBaseUrl(apiBaseUrl || authState.apiBaseUrl || DEFAULT_API_BASE_URL);
 
     if (!nextBaseUrl) {
       throw new Error("API base URL is not configured");
@@ -91,7 +92,7 @@ export function AuthProvider({ children }) {
   };
 
   const signup = async ({ fullName, email, password, role, apiBaseUrl }) => {
-    const nextBaseUrl = apiBaseUrl?.trim() || authState.apiBaseUrl || DEFAULT_API_BASE_URL;
+    const nextBaseUrl = normalizeApiBaseUrl(apiBaseUrl || authState.apiBaseUrl || DEFAULT_API_BASE_URL);
 
     if (!nextBaseUrl) {
       throw new Error("API base URL is not configured");

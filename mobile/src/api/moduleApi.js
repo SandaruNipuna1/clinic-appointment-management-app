@@ -1,6 +1,7 @@
-import { apiRequest } from "./apiClient";
+import { apiRequest, normalizeApiBaseUrl } from "./apiClient";
 
 const uploadRequest = async ({ baseUrl, token, endpoint, file }) => {
+  const normalizedBaseUrl = normalizeApiBaseUrl(baseUrl);
   const formData = new FormData();
   formData.append("attachment", {
     uri: file.uri,
@@ -8,7 +9,7 @@ const uploadRequest = async ({ baseUrl, token, endpoint, file }) => {
     type: file.mimeType || "application/octet-stream"
   });
 
-  const response = await fetch(`${baseUrl}${endpoint}`, {
+  const response = await fetch(`${normalizedBaseUrl}${endpoint}`, {
     method: "POST",
     headers: token
       ? {

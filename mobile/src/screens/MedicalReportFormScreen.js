@@ -26,6 +26,9 @@ export default function MedicalReportFormScreen({ navigation, route }) {
   const { currentUser } = useAuth();
   const reportId = route.params?.reportId;
   const existingReport = useMemo(() => reports.find((report) => report.rawId === reportId), [reports, reportId]);
+  const canCreateReports = ["admin", "receptionist"].includes(currentUser?.role);
+  const canEditReports = currentUser?.role === "admin";
+  const canAccessForm = existingReport ? canEditReports : canCreateReports;
   const initialPatient = patients.find((patient) => patient.rawId === existingReport?.patientId) || null;
   const initialDoctor = doctors.find((doctor) => doctor.name === existingReport?.doctorName) || null;
   const [values, setValues] = useState({
@@ -94,11 +97,11 @@ export default function MedicalReportFormScreen({ navigation, route }) {
     }
   };
 
-  if (currentUser?.role !== "admin") {
+  if (!canAccessForm) {
     return (
       <ScreenContainer>
         <Text style={styles.title}>Access denied</Text>
-        <Text style={styles.subtitle}>Only admin users can create or edit medical reports.</Text>
+        <Text style={styles.subtitle}>Only admin users can edit reports. Admin and receptionist users can create reports.</Text>
         <PrimaryButton title="Back" onPress={() => navigation.goBack()} />
       </ScreenContainer>
     );

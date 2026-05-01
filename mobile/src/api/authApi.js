@@ -1,3 +1,5 @@
+import { normalizeApiBaseUrl } from "./apiClient";
+
 const DEFAULT_API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 const parseJson = async (response) => {
@@ -12,7 +14,9 @@ const parseJson = async (response) => {
 };
 
 const request = async ({ endpoint, method = "GET", token, body, baseUrl = DEFAULT_API_BASE_URL }) => {
-  if (!baseUrl) {
+  const normalizedBaseUrl = normalizeApiBaseUrl(baseUrl);
+
+  if (!normalizedBaseUrl) {
     throw new Error("API base URL is not configured");
   }
 
@@ -24,7 +28,7 @@ const request = async ({ endpoint, method = "GET", token, body, baseUrl = DEFAUL
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${baseUrl}${endpoint}`, {
+  const response = await fetch(`${normalizedBaseUrl}${endpoint}`, {
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined

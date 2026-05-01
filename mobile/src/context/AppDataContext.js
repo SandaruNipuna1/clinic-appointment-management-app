@@ -128,6 +128,7 @@ export function AppDataProvider({ children }) {
       return;
     }
 
+    const canLoadReports = ["admin", "receptionist", "patient"].includes(currentUser?.role);
     const results = await Promise.allSettled([
       moduleApi.getDoctors({ baseUrl: apiBaseUrl, token }),
       moduleApi.getPatients({ baseUrl: apiBaseUrl, token }).catch((error) => {
@@ -137,7 +138,7 @@ export function AppDataProvider({ children }) {
         throw error;
       }),
       moduleApi.getAppointments({ baseUrl: apiBaseUrl, token }),
-      moduleApi.getMedicalReports({ baseUrl: apiBaseUrl, token }),
+      canLoadReports ? moduleApi.getMedicalReports({ baseUrl: apiBaseUrl, token }) : Promise.resolve([]),
       moduleApi.getSchedules({ baseUrl: apiBaseUrl, token })
     ]);
 

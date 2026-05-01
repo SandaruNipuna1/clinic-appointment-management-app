@@ -15,6 +15,7 @@ export default function MedicalReportListScreen({ navigation }) {
   const [doctorFilter, setDoctorFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
   const canEditReports = currentUser?.role === "admin";
+  const canCreateReports = ["admin", "receptionist"].includes(currentUser?.role);
 
   const filteredReports = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -69,7 +70,7 @@ export default function MedicalReportListScreen({ navigation }) {
         <FormInput label="Filter by date" value={dateFilter} onChangeText={setDateFilter} placeholder="YYYY-MM-DD" />
       </View>
 
-      {canEditReports ? <PrimaryButton title="Add Medical Report" onPress={() => navigation.navigate("ReportForm")} /> : null}
+      {canCreateReports ? <PrimaryButton title="Add Medical Report" onPress={() => navigation.navigate("ReportForm")} /> : null}
 
       {filteredReports.map((report) => (
         <InfoCard

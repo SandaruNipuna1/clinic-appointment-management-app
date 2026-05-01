@@ -31,14 +31,14 @@ export default function HomeDashboardScreen({ navigation }) {
   const canManageDoctors = ["admin", "receptionist"].includes(currentUser?.role);
   const canManagePatients = ["admin", "receptionist"].includes(currentUser?.role);
   const canManageAppointments = ["admin", "receptionist", "patient"].includes(currentUser?.role);
-  const canManageReports = ["admin", "patient"].includes(currentUser?.role);
+  const canViewReports = ["admin", "receptionist", "patient"].includes(currentUser?.role);
   const canViewSchedules = ["admin", "receptionist", "patient"].includes(currentUser?.role);
   const canManageSchedules = ["admin", "receptionist"].includes(currentUser?.role);
   const summaryCards = [
     canManageDoctors ? { key: "doctors", value: doctors.length, label: "Doctors" } : null,
     canManagePatients ? { key: "patients", value: patients.length, label: "Patients" } : null,
     canManageAppointments ? { key: "appointments", value: appointments.length, label: "Appointments" } : null,
-    canManageReports ? { key: "reports", value: reports.length, label: "Reports" } : null,
+    canViewReports ? { key: "reports", value: reports.length, label: "Reports" } : null,
     canViewSchedules ? { key: "schedules", value: schedules.length, label: "Schedules" } : null
   ].filter(Boolean);
 
@@ -127,11 +127,15 @@ export default function HomeDashboardScreen({ navigation }) {
         </InfoCard>
       ) : null}
 
-      {canManageReports ? (
+      {canViewReports ? (
         <InfoCard
           title="Medical Reports"
           lines={[
-            "Manage patient reports with diagnosis, symptoms, treatment, and notes.",
+            currentUser?.role === "admin"
+              ? "Manage patient reports with diagnosis, symptoms, treatment, and notes."
+              : currentUser?.role === "receptionist"
+                ? "Add and view patient reports with diagnosis, symptoms, treatment, and notes."
+              : "View patient reports with diagnosis, symptoms, treatment, and notes.",
             "Search by patient name or report ID and filter by doctor or date."
           ]}
         >
