@@ -8,16 +8,18 @@ import ScreenContainer from "../components/ScreenContainer";
 import { useAppData } from "../context/AppDataContext";
 import { useAuth } from "../context/AuthContext";
 
+const DAY_FILTER_OPTIONS = ["All", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
 export default function ScheduleListScreen({ navigation }) {
   const { schedules, deleteSchedule } = useAppData();
   const { currentUser } = useAuth();
   const [doctorFilter, setDoctorFilter] = useState("");
-  const [dayFilter, setDayFilter] = useState("");
+  const [dayFilter, setDayFilter] = useState("All");
   const canManageSchedules = ["admin", "receptionist"].includes(currentUser?.role);
 
   const filteredSchedules = useMemo(() => {
     const normalizedDoctor = doctorFilter.trim().toLowerCase();
-    const normalizedDay = dayFilter.trim().toLowerCase();
+    const normalizedDay = dayFilter === "All" ? "" : dayFilter.trim().toLowerCase();
 
     return schedules.filter((schedule) => {
       const matchesDoctor = !normalizedDoctor || schedule.doctorName.toLowerCase().includes(normalizedDoctor);
@@ -55,7 +57,17 @@ export default function ScheduleListScreen({ navigation }) {
           onChangeText={setDoctorFilter}
           placeholder="Doctor name"
         />
-        <FormInput label="Filter by day" value={dayFilter} onChangeText={setDayFilter} placeholder="Monday" />
+        <Text style={styles.filterLabel}>Filter by day</Text>
+        <View style={styles.filterWrap}>
+          {DAY_FILTER_OPTIONS.map((option) => (
+            <PrimaryButton
+              key={option}
+              title={option}
+              onPress={() => setDayFilter(option)}
+              variant={dayFilter === option ? "primary" : "ghost"}
+            />
+          ))}
+        </View>
       </View>
 
       {canManageSchedules ? (
@@ -67,7 +79,7 @@ export default function ScheduleListScreen({ navigation }) {
           key={schedule.id}
           title={`${schedule.doctorName} • ${schedule.id}`}
           lines={[
-            `Day: ${schedule.availableDay}`,
+            `Days: ${schedule.availableDay}`,
             `Time: ${schedule.startTime} - ${schedule.endTime}`,
             `Status: ${schedule.status}`
           ]}
@@ -108,5 +120,18 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     borderWidth: 1,
     borderColor: "#dde8ee"
+  },
+  filterLabel: {
+    fontSize: 13,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.9,
+    color: "#4b6972",
+    marginBottom: 10
+  },
+  filterWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10
   }
 });

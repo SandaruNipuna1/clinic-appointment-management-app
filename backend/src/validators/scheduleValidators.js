@@ -24,7 +24,12 @@ const scheduleIdParamValidation = [
 
 const createScheduleValidation = [
   body("doctorName").trim().notEmpty().withMessage("doctor name is required"),
-  body("availableDay").trim().notEmpty().withMessage("available day is required"),
+  body("availableDays").custom((value) => {
+    if (!Array.isArray(value) || value.length === 0) {
+      throw new Error("at least one available day is required");
+    }
+    return true;
+  }),
   validateTime("startTime"),
   validateTime("endTime"),
   body("status").optional().isIn(["Available", "Unavailable"]).withMessage("status must be valid")
@@ -33,7 +38,14 @@ const createScheduleValidation = [
 const updateScheduleValidation = [
   ...scheduleIdParamValidation,
   body("doctorName").optional().trim().notEmpty().withMessage("doctor name cannot be empty"),
-  body("availableDay").optional().trim().notEmpty().withMessage("available day cannot be empty"),
+  body("availableDays")
+    .optional()
+    .custom((value) => {
+      if (!Array.isArray(value) || value.length === 0) {
+        throw new Error("at least one available day is required");
+      }
+      return true;
+    }),
   body("startTime")
     .optional()
     .custom((value) => {

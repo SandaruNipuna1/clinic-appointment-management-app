@@ -111,10 +111,34 @@ const deleteMedicalReport = asyncHandler(async (req, res) => {
   res.status(200).json({ message: "Medical report deleted successfully" });
 });
 
+const uploadMedicalReportAttachment = asyncHandler(async (req, res) => {
+  const report = await MedicalReport.findById(req.params.id);
+
+  if (!report) {
+    res.status(404);
+    throw new Error("Medical report not found");
+  }
+
+  if (!req.file) {
+    res.status(400);
+    throw new Error("Attachment file is required");
+  }
+
+  report.attachmentName = req.file.originalname;
+  report.attachmentUrl = `/uploads/medical-reports/${req.file.filename}`;
+  report.attachmentMimeType = req.file.mimetype || "";
+  report.attachmentSize = req.file.size || 0;
+
+  const updatedReport = await report.save();
+
+  res.status(200).json(serializeMedicalReport(updatedReport));
+});
+
 module.exports = {
   getMedicalReports,
   getMedicalReportById,
   createMedicalReport,
   updateMedicalReport,
-  deleteMedicalReport
+  deleteMedicalReport,
+  uploadMedicalReportAttachment
 };

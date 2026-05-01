@@ -51,6 +51,25 @@ const medicalReportSchema = new mongoose.Schema(
       type: String,
       trim: true,
       default: ""
+    },
+    attachmentName: {
+      type: String,
+      trim: true,
+      default: ""
+    },
+    attachmentUrl: {
+      type: String,
+      trim: true,
+      default: ""
+    },
+    attachmentMimeType: {
+      type: String,
+      trim: true,
+      default: ""
+    },
+    attachmentSize: {
+      type: Number,
+      default: 0
     }
   },
   {

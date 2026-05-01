@@ -13,10 +13,13 @@ const scheduleSchema = new mongoose.Schema(
       required: true,
       trim: true
     },
-    availableDay: {
-      type: String,
+    availableDays: {
+      type: [String],
       required: true,
-      trim: true
+      validate: {
+        validator: (value) => Array.isArray(value) && value.length > 0,
+        message: "At least one available day is required"
+      }
     },
     startTime: {
       type: String,
@@ -43,6 +46,6 @@ const scheduleSchema = new mongoose.Schema(
   }
 );
 
-scheduleSchema.index({ doctorName: 1, availableDay: 1, startTime: 1 });
+scheduleSchema.index({ doctorName: 1, startTime: 1 });
 
 module.exports = mongoose.model("Schedule", scheduleSchema);

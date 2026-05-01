@@ -1,5 +1,33 @@
 import { apiRequest } from "./apiClient";
 
+const uploadRequest = async ({ baseUrl, token, endpoint, file }) => {
+  const formData = new FormData();
+  formData.append("attachment", {
+    uri: file.uri,
+    name: file.name,
+    type: file.mimeType || "application/octet-stream"
+  });
+
+  const response = await fetch(`${baseUrl}${endpoint}`, {
+    method: "POST",
+    headers: token
+      ? {
+          Authorization: `Bearer ${token}`
+        }
+      : undefined,
+    body: formData
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const validationErrors = data?.errors?.map((item) => item.msg).join(", ");
+    throw new Error(validationErrors || data?.message || "Upload failed");
+  }
+
+  return data;
+};
+
 export const moduleApi = {
   getAppointments: ({ baseUrl, token }) =>
     apiRequest({
@@ -62,6 +90,14 @@ export const moduleApi = {
       endpoint: "/medical-reports",
       method: "POST",
       body: payload
+    }),
+
+  uploadMedicalReportAttachment: ({ baseUrl, token, reportId, file }) =>
+    uploadRequest({
+      baseUrl,
+      token,
+      endpoint: `/medical-reports/${reportId}/attachment`,
+      file
     }),
 
   updateMedicalReport: ({ baseUrl, token, reportId, payload }) =>

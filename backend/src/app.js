@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 const appointmentRoutes = require("./routes/appointmentRoutes");
@@ -13,6 +14,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 app.get("/api/health", (req, res) => {
   res.status(200).json({ message: "Clinic backend is running" });

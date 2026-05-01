@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Alert, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 import FormInput from "../components/FormInput";
 import PrimaryButton from "../components/PrimaryButton";
@@ -13,11 +13,15 @@ const STATUS_OPTIONS = ["Available", "Unavailable"];
 const validateSchedule = (values) => {
   const errors = {};
 
-  ["doctorName", "availableDay", "startTime", "endTime", "status"].forEach((field) => {
+  ["doctorName", "startTime", "endTime", "status"].forEach((field) => {
     if (!String(values[field] || "").trim()) {
       errors[field] = `${field} is required`;
     }
   });
+
+  if (!Array.isArray(values.availableDays) || values.availableDays.length === 0) {
+    errors.availableDays = "availableDays is required";
+  }
 
   return errors;
 };
@@ -32,17 +36,30 @@ export default function ScheduleFormScreen({ navigation, route }) {
   );
   const [values, setValues] = useState({
     doctorName: existingSchedule?.doctorName || doctors[0]?.name || "",
-    availableDay: existingSchedule?.availableDay || "Monday",
+    availableDays: existingSchedule?.availableDays?.length ? existingSchedule.availableDays : ["Monday"],
     startTime: existingSchedule?.startTime || "",
     endTime: existingSchedule?.endTime || "",
     status: existingSchedule?.status || "Available"
   });
   const [errors, setErrors] = useState({});
+  const [showDoctors, setShowDoctors] = useState(false);
 
   const canManageSchedules = ["admin", "receptionist"].includes(currentUser?.role);
 
   const handleChange = (field, value) => {
     setValues((current) => ({ ...current, [field]: value }));
+  };
+
+  const toggleDay = (day) => {
+    setValues((current) => {
+      const exists = current.availableDays.includes(day);
+      return {
+        ...current,
+        availableDays: exists
+          ? current.availableDays.filter((item) => item !== day)
+          : [...current.availableDays, day]
+      };
+    });
   };
 
   const handleSave = async () => {
@@ -83,25 +100,49 @@ export default function ScheduleFormScreen({ navigation, route }) {
 
       <View style={styles.panel}>
         <FormInput
-          label="Doctor Name"
+          label="Selected Doctor"
           value={values.doctorName}
-          onChangeText={(value) => handleChange("doctorName", value)}
+          onChangeText={() => {}}
           error={errors.doctorName}
-          placeholder="Dr. Amal Silva"
+          editable={false}
         />
+        <Text style={styles.filterLabel}>Select Doctor</Text>
+        <Pressable style={styles.selectorField} onPress={() => setShowDoctors((current) => !current)}>
+          <Text style={values.doctorName ? styles.selectorValue : styles.selectorPlaceholder}>
+            {values.doctorName || "Select doctor"}
+          </Text>
+        </Pressable>
+        {showDoctors ? (
+          <View style={styles.optionGrid}>
+            {doctors.map((doctor) => (
+              <Pressable
+                key={doctor.rawId}
+                style={[styles.optionChip, values.doctorName === doctor.name && styles.optionChipSelected]}
+                onPress={() => {
+                  handleChange("doctorName", doctor.name);
+                  setShowDoctors(false);
+                }}
+              >
+                <Text style={[styles.optionChipText, values.doctorName === doctor.name && styles.optionChipTextSelected]}>
+                  {doctor.name}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
 
-        <Text style={styles.filterLabel}>Available Day</Text>
+        <Text style={styles.filterLabel}>Available Days</Text>
         <View style={styles.filterWrap}>
           {DAY_OPTIONS.map((option) => (
             <PrimaryButton
               key={option}
               title={option}
-              onPress={() => handleChange("availableDay", option)}
-              variant={values.availableDay === option ? "primary" : "ghost"}
+              onPress={() => toggleDay(option)}
+              variant={values.availableDays.includes(option) ? "primary" : "ghost"}
             />
           ))}
         </View>
-        {errors.availableDay ? <Text style={styles.errorText}>{errors.availableDay}</Text> : null}
+        {errors.availableDays ? <Text style={styles.errorText}>{errors.availableDays}</Text> : null}
 
         <FormInput
           label="Start Time"
@@ -172,6 +213,50 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 10,
     marginBottom: 10
+  },
+  selectorField: {
+    borderWidth: 1,
+    borderColor: "#d3dee5",
+    borderRadius: 18,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    backgroundColor: "#ffffff",
+    marginBottom: 10
+  },
+  selectorValue: {
+    fontSize: 16,
+    color: "#12303a",
+    fontWeight: "600"
+  },
+  selectorPlaceholder: {
+    fontSize: 16,
+    color: "#8aa0ad"
+  },
+  optionGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginBottom: 12
+  },
+  optionChip: {
+    borderWidth: 1,
+    borderColor: "#d3dee5",
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    backgroundColor: "#ffffff"
+  },
+  optionChipSelected: {
+    backgroundColor: "#0f766e",
+    borderColor: "#0f766e"
+  },
+  optionChipText: {
+    color: "#29444b",
+    fontWeight: "700",
+    fontSize: 14
+  },
+  optionChipTextSelected: {
+    color: "#ffffff"
   },
   errorText: {
     color: "#dc2626",

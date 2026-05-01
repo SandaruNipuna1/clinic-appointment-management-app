@@ -65,7 +65,11 @@ const mapReport = (report) => ({
   treatment: report.treatment,
   prescriptionNote: report.prescriptionNote,
   reportDate: formatDate(report.reportDate),
-  additionalNotes: report.additionalNotes || ""
+  additionalNotes: report.additionalNotes || "",
+  attachmentName: report.attachmentName || "",
+  attachmentUrl: report.attachmentUrl || "",
+  attachmentMimeType: report.attachmentMimeType || "",
+  attachmentSize: report.attachmentSize || 0
 });
 
 const mapPatient = (patient) => ({
@@ -415,6 +419,24 @@ export function AppDataProvider({ children }) {
     }));
   };
 
+  const uploadReportAttachment = async (reportId, file) => {
+    const savedReport = await moduleApi.uploadMedicalReportAttachment({
+      baseUrl: apiBaseUrl,
+      token,
+      reportId,
+      file
+    });
+
+    const nextReport = mapReport(savedReport);
+
+    setState((current) => ({
+      ...current,
+      reports: current.reports.map((report) => (report.rawId === nextReport.rawId ? nextReport : report))
+    }));
+
+    return nextReport;
+  };
+
   const upsertSchedule = async (schedule) => {
     const payload = {
       doctorName: schedule.doctorName.trim(),
@@ -483,6 +505,7 @@ export function AppDataProvider({ children }) {
       deleteAppointment,
       upsertReport,
       deleteReport,
+      uploadReportAttachment,
       upsertSchedule,
       deleteSchedule,
       resetDemoData

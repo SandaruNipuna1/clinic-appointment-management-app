@@ -2,10 +2,21 @@ const Schedule = require("../models/Schedule");
 const asyncHandler = require("../utils/asyncHandler");
 const generateEntityCode = require("../utils/generateEntityCode");
 
+const normalizeAvailableDays = (value) => {
+  if (Array.isArray(value)) {
+    return value.map((entry) => String(entry).trim()).filter(Boolean);
+  }
+
+  if (value) {
+    return [String(value).trim()].filter(Boolean);
+  }
+
+  return [];
+};
+
 const getAllSchedules = asyncHandler(async (req, res) => {
   const schedules = await Schedule.find({ isActive: true }).sort({
     doctorName: 1,
-    availableDay: 1,
     startTime: 1
   });
 
@@ -27,7 +38,7 @@ const createSchedule = asyncHandler(async (req, res) => {
   const schedule = await Schedule.create({
     ...req.body,
     doctorName: req.body.doctorName.trim(),
-    availableDay: req.body.availableDay.trim(),
+    availableDays: normalizeAvailableDays(req.body.availableDays || req.body.availableDay),
     startTime: req.body.startTime.trim(),
     endTime: req.body.endTime.trim(),
     scheduleCode: await generateEntityCode(Schedule, "scheduleCode", "SCH")
@@ -44,7 +55,26 @@ const updateSchedule = asyncHandler(async (req, res) => {
     throw new Error("Schedule not found");
   }
 
-  Object.assign(schedule, req.body);
+  if (req.body.doctorName !== undefined) {
+    schedule.doctorName = req.body.doctorName.trim();
+  }
+
+  if (req.body.availableDays !== undefined || req.body.availableDay !== undefined) {
+    schedule.availableDays = normalizeAvailableDays(req.body.availableDays || req.body.availableDay);
+  }
+
+  if (req.body.startTime !== undefined) {
+    schedule.startTime = req.body.startTime.trim();
+  }
+
+  if (req.body.endTime !== undefined) {
+    schedule.endTime = req.body.endTime.trim();
+  }
+
+  if (req.body.status !== undefined) {
+    schedule.status = req.body.status;
+  }
+
   const updatedSchedule = await schedule.save();
 
   res.status(200).json(updatedSchedule);
