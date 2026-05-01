@@ -1,4 +1,5 @@
 const MedicalReport = require("../models/MedicalReport");
+const Patient = require("../models/Patient");
 const asyncHandler = require("../utils/asyncHandler");
 const generateEntityCode = require("../utils/generateEntityCode");
 
@@ -7,8 +8,19 @@ const serializeMedicalReport = (report) => ({
   reportDate: report.reportDate
 });
 
+const getPatientReportQuery = async (user) => {
+  const linkedPatients = user.email
+    ? await Patient.find({ email: user.email.trim().toLowerCase() }).select("_id").lean()
+    : [];
+  const linkedPatientIds = linkedPatients.map((patient) => patient._id);
+
+  return {
+    $or: [{ patientId: user.id }, ...(linkedPatientIds.length > 0 ? [{ patientId: { $in: linkedPatientIds } }] : [])]
+  };
+};
+
 const getMedicalReports = asyncHandler(async (req, res) => {
-  const query = req.user.role === "patient" ? { patientId: req.user.id } : {};
+  const query = req.user.role === "patient" ? await getPatientReportQuery(req.user) : {};
   const reports = await MedicalReport.find(query)
     .sort({ reportDate: -1, createdAt: -1 })
     .lean();
@@ -24,9 +36,17 @@ const getMedicalReportById = asyncHandler(async (req, res) => {
     throw new Error("Medical report not found");
   }
 
-  if (req.user.role === "patient" && String(report.patientId || "") !== String(req.user.id)) {
-    res.status(403);
-    throw new Error("Access denied");
+  if (req.user.role === "patient") {
+    const query = await getPatientReportQuery(req.user);
+    const canAccessReport = await MedicalReport.exists({
+      _id: report._id,
+      ...query
+    });
+
+    if (!canAccessReport) {
+      res.status(403);
+      throw new Error("Access denied");
+    }
   }
 
   res.status(200).json(report);

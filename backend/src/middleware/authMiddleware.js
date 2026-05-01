@@ -15,7 +15,7 @@ const protect = asyncHandler(async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const User = require("../models/User");
-    const user = await User.findById(decoded.id).select("fullName role");
+    const user = await User.findById(decoded.id).select("fullName email role");
 
     if (!user) {
       res.status(401);
@@ -25,7 +25,8 @@ const protect = asyncHandler(async (req, res, next) => {
     req.user = {
       id: user._id.toString(),
       role: user.role,
-      fullName: user.fullName
+      fullName: user.fullName,
+      email: user.email
     };
 
     next();
