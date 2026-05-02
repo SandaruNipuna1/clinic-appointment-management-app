@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "e4a0f9d0-6c4d-417e-b884-7857eb67165c"
+      }
+    },
+    "android": {
+      "package": "com.sandarunipuna.clinicappfrontend"
+    },
+    "ios": {
+      "bundleIdentifier": "com.sandarunipuna.clinicappfrontend",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    }
+  }
+}
