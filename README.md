@@ -6,7 +6,7 @@ A mobile and backend application for managing clinic appointments. The project i
 
 - Backend: Node.js, Express, MongoDB, Mongoose
 - Mobile: React Native with Expo
-- Testing: Jest
+- Testing: Node.js test runner
 
 ## Project Structure
 
@@ -41,7 +41,7 @@ cp backend/.env.example backend/.env
 cp mobile/.env.example mobile/.env
 ```
 
-Set `MONGODB_URI` in `backend/.env` if your local MongoDB URL differs from the default.
+Set `MONGODB_URI` in `backend/.env` if your local or hosted MongoDB URL differs from the default.
 
 Set `EXPO_PUBLIC_API_BASE_URL` in `mobile/.env` to the backend URL your device or simulator can reach.
 
@@ -75,13 +75,53 @@ If you test the Expo app on a physical phone, make sure `EXPO_PUBLIC_API_BASE_UR
 
 ## API Endpoints
 
-- `POST /api/appointments`
+### Authentication
+
+- `POST /api/auth/signup`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
+- `PATCH /api/auth/me`
+
+### Appointments
+
 - `GET /api/appointments`
 - `GET /api/appointments/:id`
-- `GET /api/appointments/patient/:patientId`
-- `PATCH /api/appointments/:id`
-- `PATCH /api/appointments/:id/cancel`
+- `POST /api/appointments`
+- `PUT /api/appointments/:id`
 - `DELETE /api/appointments/:id`
+
+### Doctors
+
+- `GET /api/doctors`
+- `GET /api/doctors/:id`
+- `POST /api/doctors`
+- `PUT /api/doctors/:id`
+- `DELETE /api/doctors/:id`
+
+### Patients
+
+- `GET /api/patients`
+- `GET /api/patients/:id`
+- `POST /api/patients`
+- `PUT /api/patients/:id`
+- `DELETE /api/patients/:id`
+
+### Schedules
+
+- `GET /api/schedules`
+- `GET /api/schedules/:id`
+- `POST /api/schedules`
+- `PUT /api/schedules/:id`
+- `DELETE /api/schedules/:id`
+
+### Medical Reports
+
+- `GET /api/medical-reports`
+- `GET /api/medical-reports/:id`
+- `POST /api/medical-reports`
+- `POST /api/medical-reports/:id/attachment`
+- `PUT /api/medical-reports/:id`
+- `DELETE /api/medical-reports/:id`
 
 ## Running Tests
 

@@ -23,7 +23,7 @@ const signup = asyncHandler(async (req, res) => {
     fullName: req.body.fullName.trim(),
     email: normalizedEmail,
     passwordHash: hashPassword(req.body.password),
-    role: req.body.role
+    role: req.body.role || "patient"
   });
 
   res.status(201).json({

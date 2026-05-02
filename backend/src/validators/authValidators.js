@@ -1,6 +1,6 @@
 const { body } = require("express-validator");
 
-const SIGNUP_ROLE_OPTIONS = ["receptionist", "patient"];
+const SIGNUP_ROLE_OPTIONS = ["patient"];
 
 const signupValidation = [
   body("fullName").trim().notEmpty().withMessage("Full name is required"),
@@ -11,7 +11,7 @@ const signupValidation = [
     .bail()
     .isLength({ min: 6 })
     .withMessage("Password must be at least 6 characters"),
-  body("role").isIn(SIGNUP_ROLE_OPTIONS).withMessage("Role must be receptionist or patient")
+  body("role").optional().isIn(SIGNUP_ROLE_OPTIONS).withMessage("Role must be patient")
 ];
 
 const loginValidation = [
@@ -22,7 +22,8 @@ const loginValidation = [
 const updateProfileValidation = [
   body("fullName").optional().trim().notEmpty().withMessage("Full name cannot be empty"),
   body("email").optional().isEmail().withMessage("Please enter a valid email"),
-  body("password").optional().isLength({ min: 6 }).withMessage("Password must be at least 6 characters")
+  body("currentPassword").optional().trim(),
+  body("newPassword").optional().isLength({ min: 6 }).withMessage("Password must be at least 6 characters")
 ];
 
 module.exports = {

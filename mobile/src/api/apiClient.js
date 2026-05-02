@@ -34,14 +34,6 @@ export function normalizeApiBaseUrl(baseUrl) {
 export async function apiRequest({ baseUrl, token, endpoint, method = "GET", body }) {
   const normalizedBaseUrl = normalizeApiBaseUrl(baseUrl);
 
-  if (typeof window !== "undefined") {
-    console.log("API request", {
-      url: `${normalizedBaseUrl}${endpoint}`,
-      method,
-      body
-    });
-  }
-
   const headers = {
     "Content-Type": "application/json"
   };
