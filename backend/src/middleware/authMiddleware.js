@@ -1,0 +1,81 @@
+const jwt = require("jsonwebtoken");
+
+const store = require("../data/localStore");
+const asyncHandler = require("../utils/asyncHandler");
+
+const protect = asyncHandler(async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    res.status(401);
+    throw new Error("Not authorized, token missing");
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = store.findUserById(decoded.id);
+
+    if (!user) {
+      res.status(401);
+      throw new Error("Not authorized, user not found");
+    }
+
+    req.user = {
+      id: user.id,
+      role: user.role,
+      fullName: user.fullName,
+      email: user.email
+    };
+
+    next();
+  } catch (error) {
+    res.status(401);
+    throw new Error("Not authorized, token invalid");
+  }
+});
+
+const adminOnly = (req, res, next) => {
+  if (!req.user || req.user.role !== "admin") {
+    res.status(403);
+    throw new Error("Access denied. Admin only");
+  }
+
+  next();
+};
+
+const adminOrReceptionist = (req, res, next) => {
+  if (!req.user || !["admin", "receptionist"].includes(req.user.role)) {
+    res.status(403);
+    throw new Error("Access denied. Admin or receptionist only");
+  }
+
+  next();
+};
+
+const reportViewer = (req, res, next) => {
+  if (!req.user || !["admin", "receptionist", "patient"].includes(req.user.role)) {
+    res.status(403);
+    throw new Error("Access denied. Admin, receptionist, or patient only");
+  }
+
+  next();
+};
+
+const patientOnly = (req, res, next) => {
+  if (!req.user || req.user.role !== "patient") {
+    res.status(403);
+    throw new Error("Access denied. Patient only");
+  }
+
+  next();
+};
+
+module.exports = {
+  protect,
+  adminOnly,
+  adminOrReceptionist,
+  reportViewer,
+  patientOnly
+};

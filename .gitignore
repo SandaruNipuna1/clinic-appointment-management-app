@@ -1,0 +1,8 @@
+node_modules/
+mobile/node_modules/
+mobile/.expo/
+mobile/.env
+backend/.env
+.codex-home/
+.idea/
+.DS_Store
