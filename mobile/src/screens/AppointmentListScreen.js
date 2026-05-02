@@ -1,78 +1,64 @@
-// This file brings in tools from React and React Native to build the screen
+// Tools from React and React Native
 import React, { useMemo, useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
 
-// These are custom parts made for this app, like input boxes and buttons
+// Custom parts for the app
 import FormInput from "../components/FormInput";
 import InfoCard from "../components/InfoCard";
 import PrimaryButton from "../components/PrimaryButton";
 import ScreenContainer from "../components/ScreenContainer";
 
-// These bring in data and user info from the app's storage
+// Bring in data and user info
 import { useAppData } from "../context/AppDataContext";
 import { useAuth } from "../context/AuthContext";
 
-// This is a list of options for filtering appointments by their status
 const STATUS_OPTIONS = ["All", "Scheduled", "Completed", "Cancelled"];
 
-// This is the main part of the screen, showing a list of appointments
+// List of appointments screen
 export default function AppointmentListScreen({ navigation }) {
-  // Get appointment data and functions to change them from the app's data store
+
   const { appointments, upsertAppointment, deleteAppointment } = useAppData();
-  // Get info about the current logged-in user
   const { currentUser } = useAuth();
 
-  // This keeps track of what the user types in the search box
   const [searchQuery, setSearchQuery] = useState("");
-  // This keeps track of which status filter is selected
   const [statusFilter, setStatusFilter] = useState("All");
-  // This keeps track of the date filter
   const [dateFilter, setDateFilter] = useState("");
 
-  // Check if the user can manage appointments (like admins or receptionists)
+  // Who can manage appointments
   const canManageAppointments = ["admin", "receptionist"].includes(currentUser?.role);
-  // Check if the user can create new appointments
   const canCreateAppointment = ["admin", "receptionist", "patient"].includes(currentUser?.role);
-  // Check if the user is a patient who can cancel their own appointments
   const canCancelOwnAppointment = currentUser?.role === "patient";
 
-  // This creates a filtered list of appointments based on search, status, and date
-  // It updates automatically when the filters change
+  // Creates a filtered list of appointments based on search, status, and date
   const filteredAppointments = useMemo(() => {
-    // Make the search text lowercase and remove extra spaces
     const normalizedQuery = searchQuery.trim().toLowerCase();
 
-    // Go through each appointment and see if it matches the filters
+    //Matching
     return appointments.filter((appointment) => {
-      // Check if the search matches the patient or doctor name
       const matchesQuery =
         !normalizedQuery ||
         appointment.patientName.toLowerCase().includes(normalizedQuery) ||
         appointment.doctorName.toLowerCase().includes(normalizedQuery);
-      // Check if the status matches the filter
+
       const matchesStatus = statusFilter === "All" || appointment.status === statusFilter;
-      // Check if the date matches the filter
       const matchesDate = !dateFilter.trim() || appointment.date === dateFilter.trim();
 
-      // Only keep appointments that match all filters
       return matchesQuery && matchesStatus && matchesDate;
     });
   }, [appointments, searchQuery, statusFilter, dateFilter]);
 
-  // This function handles deleting an appointment, with a confirmation popup
+  // Deleting an appointment
   const handleDelete = (appointment) => {
-    // Show a popup asking if they really want to delete
+    // Delete alert
     Alert.alert("Delete appointment", `Delete appointment ${appointment.id}?`, [
-      { text: "Cancel", style: "cancel" }, // Button to cancel the delete
+      { text: "Cancel", style: "cancel" }, // Cancel the delete button
       {
-        text: "Delete", // Button to confirm delete
+        text: "Delete", // Confirm delete button
         style: "destructive", // Makes it look dangerous
-        onPress: async () => { // What happens when they press delete
+        onPress: async () => {
           try {
-            // Try to delete the appointment from the server
             await deleteAppointment(appointment.rawId);
           } catch (error) {
-            // If it fails, show an error message
             Alert.alert("Delete failed", error.message);
           }
         }
@@ -80,27 +66,26 @@ export default function AppointmentListScreen({ navigation }) {
     ]);
   };
 
-  // This is what the screen looks like and how it works
+  // Screen
   return (
-    // Wrap everything in a container that handles the screen layout
+    // Wrap everything in a container
     <ScreenContainer>
-      {/* The main title of the screen */}
+      {/* Main title*/}
       <Text style={styles.title}>Appointment Management</Text>
-      {/* A short description under the title */}
+      {/* Short description */}
       <Text style={styles.subtitle}>Track bookings, statuses, patient visits, and doctor schedules in one list.</Text>
 
-      {/* A panel for the search and filter options */}
+      {/* Search and filter panel */}
       <View style={styles.panel}>
-        {/* Input box for searching by patient or doctor name */}
         <FormInput
           label="Search by patient or doctor"
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholder="Search appointment"
         />
-        {/* Input box for filtering by date */}
+        {}
         <FormInput label="Filter by date" value={dateFilter} onChangeText={setDateFilter} placeholder="YYYY-MM-DD" />
-        {/* Label for the status filter buttons */}
+        {}
         <Text style={styles.filterLabel}>Filter by status</Text>
         {/* Row of buttons for status filters */}
         <View style={styles.filterWrap}>
@@ -116,18 +101,17 @@ export default function AppointmentListScreen({ navigation }) {
         </View>
       </View>
 
-      {/* Button to create a new appointment, only if allowed */}
+      {/* Create a new appointment button*/}
       {canCreateAppointment ? (
         <PrimaryButton title="Create Appointment" onPress={() => navigation.navigate("AppointmentForm")} />
       ) : null}
 
       {/* List each filtered appointment */}
       {filteredAppointments.map((appointment) => (
-        // Card showing details of the appointment
         <InfoCard
-          key={appointment.id} // Unique key for each card
-          title={`${appointment.patientName} • ${appointment.id}`} // Title with patient name and ID
-          lines={[ // List of details to show
+          key={appointment.id} 
+          title={`${appointment.patientName} • ${appointment.id}`} 
+          lines={[ 
             `Doctor: ${appointment.doctorName}`,
             `Date: ${appointment.date}`,
             `Time: ${appointment.time}`,
@@ -137,7 +121,7 @@ export default function AppointmentListScreen({ navigation }) {
         >
           {/* Row for the status badge */}
           <View style={styles.badgeRow}>
-            {/* Badge showing the appointment status with color */}
+            {}
             <View
               style={[
                 styles.statusBadge, // Base style
@@ -186,7 +170,7 @@ export default function AppointmentListScreen({ navigation }) {
                     status: "Cancelled"
                   });
                 } catch (error) {
-                  // If it fails, show an error message
+                  // Error message
                   Alert.alert("Cancel failed", error.message);
                 }
               }}
@@ -199,7 +183,7 @@ export default function AppointmentListScreen({ navigation }) {
   );
 }
 
-// These are the styles that make the screen look nice
+// Styles
 const styles = StyleSheet.create({
   // Style for the main title
   title: {

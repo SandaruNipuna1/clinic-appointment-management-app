@@ -1,6 +1,8 @@
+// React and React Native tools
 import React, { useMemo, useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
+// Custom form components and shared layout
 import FormInput from "../components/FormInput";
 import PrimaryButton from "../components/PrimaryButton";
 import ScreenContainer from "../components/ScreenContainer";
@@ -10,6 +12,7 @@ import { useAuth } from "../context/AuthContext";
 const STATUS_OPTIONS = ["Scheduled", "Completed", "Cancelled"];
 const PERIOD_OPTIONS = ["AM", "PM"];
 
+// Turn a 24-hour time string into separate hour, minute, and AM/PM values
 const convertTo12Hour = (time) => {
   if (!time) {
     return { hour: "10", minute: "30", period: "AM" };
@@ -27,6 +30,7 @@ const convertTo12Hour = (time) => {
   };
 };
 
+// Turn hour/minute/AMPM back into a 24-hour string like "14:30"
 const convertTo24Hour = ({ hour, minute, period }) => {
   const normalizedHour = Number(hour) % 12;
   const hour24 = period === "PM" ? normalizedHour + 12 : normalizedHour;
@@ -34,6 +38,7 @@ const convertTo24Hour = ({ hour, minute, period }) => {
   return `${String(finalHour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
 };
 
+// Keep the hour input between 1 and 12 and remove any bad characters
 const formatHourInput = (value) => {
   const digits = value.replace(/\D/g, "").slice(0, 2);
 
@@ -49,6 +54,7 @@ const formatHourInput = (value) => {
   return String(Math.min(number, 12));
 };
 
+// Keep the minute input between 0 and 59 and keep the formatting clean
 const formatMinuteInput = (value) => {
   const digits = value.replace(/\D/g, "").slice(0, 2);
 
@@ -59,6 +65,7 @@ const formatMinuteInput = (value) => {
   return String(Math.min(Number(digits), 59)).padStart(digits.length === 1 ? 1 : 2, "0");
 };
 
+// Check that required fields are filled in before saving
 const validateAppointment = (values, options = {}) => {
   const errors = {};
   const { requiresStatus = false } = options;
@@ -86,16 +93,22 @@ const validateAppointment = (values, options = {}) => {
 };
 
 export default function AppointmentFormScreen({ navigation, route }) {
+  // Load the app data and user data so we know what the form can do
   const { doctors, patients, appointments, upsertAppointment } = useAppData();
   const { currentUser } = useAuth();
+
+  // If there is an appointmentId in the route, we are editing an existing appointment
   const appointmentId = route.params?.appointmentId;
   const existingAppointment = useMemo(
     () => appointments.find((appointment) => appointment.rawId === appointmentId),
     [appointments, appointmentId]
   );
+
   const isPatient = currentUser?.role === "patient";
   const canManageAppointments = ["admin", "receptionist"].includes(currentUser?.role);
   const initialTime = convertTo12Hour(existingAppointment?.time || "10:30");
+
+  // Form values stored locally while the user fills the form
   const [values, setValues] = useState({
     id: existingAppointment?.id || "",
     patientName: existingAppointment?.patientName || currentUser?.fullName || "",
@@ -109,7 +122,10 @@ export default function AppointmentFormScreen({ navigation, route }) {
     reason: existingAppointment?.reason || "",
     status: existingAppointment?.status || "Scheduled"
   });
+
+  // Store any validation errors so we can show them on the form
   const [errors, setErrors] = useState({});
+
   const selectedDoctorName = doctors.find((doctor) => doctor.rawId === values.doctorId)?.name || "";
   const selectedPatient = patients.find((patient) => patient.rawId === values.patientId) || null;
   const shouldShowStatusEditor = canManageAppointments && Boolean(existingAppointment);
@@ -118,6 +134,7 @@ export default function AppointmentFormScreen({ navigation, route }) {
     setValues((current) => ({ ...current, [field]: value }));
   };
 
+  // Keep the time fields in sync when the user changes hour, minute, or AM/PM
   const handleTimeSelection = (field, value) => {
     setValues((current) => {
       const nextValues = {
@@ -144,6 +161,7 @@ export default function AppointmentFormScreen({ navigation, route }) {
     setErrors((current) => ({ ...current, patientName: undefined }));
   };
 
+  // Save the appointment when the user presses the button
   const handleSave = async () => {
     const nextErrors = validateAppointment(values, {
       requiresStatus: shouldShowStatusEditor
@@ -174,6 +192,7 @@ export default function AppointmentFormScreen({ navigation, route }) {
     }
   };
 
+  // If the user is not allowed to use this form, show a simple access message
   if (!["admin", "receptionist", "patient"].includes(currentUser?.role)) {
     return (
       <ScreenContainer>
@@ -184,6 +203,7 @@ export default function AppointmentFormScreen({ navigation, route }) {
     );
   }
 
+  // Patients can only create new appointments, not edit existing ones here
   if (isPatient && existingAppointment) {
     return (
       <ScreenContainer>
