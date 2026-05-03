@@ -13,6 +13,7 @@ const formatDate = (value) => {
   return new Date(value).toISOString().slice(0, 10);
 };
 
+<<<<<<< HEAD
 const formatAvailability = (doctor) => {
   if (doctor.availabilityLabel) {
     return doctor.availabilityLabel;
@@ -80,6 +81,8 @@ const mapReport = (report) => ({
   attachmentSize: report.attachmentSize || 0
 });
 
+=======
+>>>>>>> 4a883649 (patient management module added)
 const mapPatient = (patient) => ({
   rawId: patient._id,
   id: patient.patientCode || patient._id,
@@ -91,6 +94,7 @@ const mapPatient = (patient) => ({
   address: patient.address
 });
 
+<<<<<<< HEAD
 const mapSchedule = (schedule) => ({
   rawId: schedule._id,
   id: schedule.scheduleCode || schedule._id,
@@ -118,6 +122,14 @@ const EMPTY_STATE = {
 
 export function AppDataProvider({ children }) {
   const { apiBaseUrl, token, currentUser, isReady: isAuthReady } = useAuth();
+=======
+const EMPTY_STATE = {
+  patients: []
+};
+
+export function AppDataProvider({ children }) {
+  const { apiBaseUrl, token, isReady: isAuthReady } = useAuth();
+>>>>>>> 4a883649 (patient management module added)
   const [state, setState] = useState(EMPTY_STATE);
   const [isReady, setIsReady] = useState(false);
 
@@ -128,6 +140,7 @@ export function AppDataProvider({ children }) {
       return;
     }
 
+<<<<<<< HEAD
     const canLoadReports = ["admin", "receptionist", "patient"].includes(currentUser?.role);
     const results = await Promise.allSettled([
       moduleApi.getDoctors({ baseUrl: apiBaseUrl, token }),
@@ -160,6 +173,20 @@ export function AppDataProvider({ children }) {
     });
     setIsReady(true);
   }, [apiBaseUrl, currentUser?.role, token]);
+=======
+    try {
+      const patients = await moduleApi.getPatients({ baseUrl: apiBaseUrl, token });
+      setState({
+        patients: patients.map(mapPatient)
+      });
+    } catch (error) {
+      console.warn("Failed to load patients", error);
+      setState(EMPTY_STATE);
+    } finally {
+      setIsReady(true);
+    }
+  }, [apiBaseUrl, token]);
+>>>>>>> 4a883649 (patient management module added)
 
   useEffect(() => {
     const load = async () => {
@@ -167,6 +194,7 @@ export function AppDataProvider({ children }) {
         return;
       }
 
+<<<<<<< HEAD
       try {
         await refreshData();
       } catch (error) {
@@ -174,11 +202,15 @@ export function AppDataProvider({ children }) {
         setState(EMPTY_STATE);
         setIsReady(true);
       }
+=======
+      await refreshData();
+>>>>>>> 4a883649 (patient management module added)
     };
 
     load();
   }, [isAuthReady, refreshData]);
 
+<<<<<<< HEAD
   const upsertDoctor = async (doctor) => {
     const availability =
       Array.isArray(doctor.availabilityDays) &&
@@ -265,6 +297,8 @@ export function AppDataProvider({ children }) {
     }));
   };
 
+=======
+>>>>>>> 4a883649 (patient management module added)
   const upsertPatient = async (patient) => {
     const payload = {
       name: patient.name.trim(),
@@ -316,6 +350,7 @@ export function AppDataProvider({ children }) {
     }));
   };
 
+<<<<<<< HEAD
   const upsertAppointment = async (appointment) => {
     const selectedDoctor = state.doctors.find((doctor) => doctor.rawId === appointment.doctorId);
     const payload = {
@@ -522,6 +557,17 @@ export function AppDataProvider({ children }) {
       resetDemoData
     }),
     [currentUser, isReady, refreshData, state]
+=======
+  const value = useMemo(
+    () => ({
+      ...state,
+      isReady,
+      refreshData,
+      upsertPatient,
+      deletePatient
+    }),
+    [deletePatient, isReady, refreshData, state]
+>>>>>>> 4a883649 (patient management module added)
   );
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;

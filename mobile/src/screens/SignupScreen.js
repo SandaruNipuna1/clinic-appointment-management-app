@@ -8,6 +8,7 @@ import PrimaryButton from "../components/PrimaryButton";
 
 const ROLE_OPTIONS = [
   {
+<<<<<<< HEAD
     value: "patient",
     label: "Patient",
     description: "Book appointments"
@@ -16,6 +17,16 @@ const ROLE_OPTIONS = [
     value: "receptionist",
     label: "Receptionist",
     description: "Manage schedules"
+=======
+    value: "receptionist",
+    label: "Receptionist",
+    description: "Manage patient records"
+  },
+  {
+    value: "admin",
+    label: "Admin",
+    description: "Full access to patient records"
+>>>>>>> 4a883649 (patient management module added)
   }
 ];
 
@@ -25,7 +36,11 @@ export default function SignupScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+<<<<<<< HEAD
   const [role, setRole] = useState("patient");
+=======
+  const [role, setRole] = useState("receptionist");
+>>>>>>> 4a883649 (patient management module added)
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -72,7 +87,11 @@ export default function SignupScreen() {
   return (
     <ScreenContainer>
       <Text style={styles.title}>Create account</Text>
+<<<<<<< HEAD
       <Text style={styles.subtitle}>Register a new profile for patient or receptionist access.</Text>
+=======
+      <Text style={styles.subtitle}>Register a new admin or receptionist profile for patient management access.</Text>
+>>>>>>> 4a883649 (patient management module added)
       <FormInput label="Full Name" value={fullName} onChangeText={setFullName} />
       <FormInput label="Email" value={email} onChangeText={setEmail} />
       <FormInput

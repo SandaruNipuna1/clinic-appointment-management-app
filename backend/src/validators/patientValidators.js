@@ -1,13 +1,21 @@
 const { body, param } = require("express-validator");
+<<<<<<< HEAD
 const mongoose = require("mongoose");
 
 const isValidObjectId = (value) => mongoose.Types.ObjectId.isValid(value);
+=======
+>>>>>>> 4a883649 (patient management module added)
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 const patientIdParamValidation = [
   param("id").custom((value) => {
+<<<<<<< HEAD
     if (!isValidObjectId(value)) {
       throw new Error("Patient id must be a valid MongoDB ObjectId");
+=======
+    if (!value || typeof value !== "string" || !value.trim()) {
+      throw new Error("Patient id is required");
+>>>>>>> 4a883649 (patient management module added)
     }
     return true;
   })

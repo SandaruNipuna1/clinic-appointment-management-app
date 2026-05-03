@@ -1,10 +1,18 @@
+<<<<<<< HEAD
 const User = require("../models/User");
+=======
+const store = require("../data/localStore");
+>>>>>>> 4a883649 (patient management module added)
 const asyncHandler = require("../utils/asyncHandler");
 const generateToken = require("../utils/generateToken");
 const { hashPassword, verifyPassword } = require("../utils/passwordUtils");
 
 const serializeUser = (user) => ({
+<<<<<<< HEAD
   id: user._id.toString(),
+=======
+  id: user.id,
+>>>>>>> 4a883649 (patient management module added)
   fullName: user.fullName,
   email: user.email,
   role: user.role
@@ -12,14 +20,22 @@ const serializeUser = (user) => ({
 
 const signup = asyncHandler(async (req, res) => {
   const normalizedEmail = req.body.email.trim().toLowerCase();
+<<<<<<< HEAD
   const existingUser = await User.findOne({ email: normalizedEmail });
+=======
+  const existingUser = store.findUserByEmail(normalizedEmail);
+>>>>>>> 4a883649 (patient management module added)
 
   if (existingUser) {
     res.status(400);
     throw new Error("Email already exists");
   }
 
+<<<<<<< HEAD
   const user = await User.create({
+=======
+  const user = store.createUser({
+>>>>>>> 4a883649 (patient management module added)
     fullName: req.body.fullName.trim(),
     email: normalizedEmail,
     passwordHash: hashPassword(req.body.password),
@@ -34,7 +50,11 @@ const signup = asyncHandler(async (req, res) => {
 
 const login = asyncHandler(async (req, res) => {
   const normalizedEmail = req.body.email.trim().toLowerCase();
+<<<<<<< HEAD
   const user = await User.findOne({ email: normalizedEmail });
+=======
+  const user = store.findUserByEmail(normalizedEmail);
+>>>>>>> 4a883649 (patient management module added)
 
   if (!user) {
     res.status(404);
@@ -53,7 +73,11 @@ const login = asyncHandler(async (req, res) => {
 });
 
 const getProfile = asyncHandler(async (req, res) => {
+<<<<<<< HEAD
   const user = await User.findById(req.user.id);
+=======
+  const user = store.findUserById(req.user.id);
+>>>>>>> 4a883649 (patient management module added)
 
   if (!user) {
     res.status(404);
@@ -64,7 +88,11 @@ const getProfile = asyncHandler(async (req, res) => {
 });
 
 const updateProfile = asyncHandler(async (req, res) => {
+<<<<<<< HEAD
   const user = await User.findById(req.user.id);
+=======
+  const user = store.findUserById(req.user.id);
+>>>>>>> 4a883649 (patient management module added)
 
   if (!user) {
     res.status(404);
@@ -73,12 +101,18 @@ const updateProfile = asyncHandler(async (req, res) => {
 
   if (req.body.email) {
     const normalizedEmail = req.body.email.trim().toLowerCase();
+<<<<<<< HEAD
     const existingUser = await User.findOne({
       email: normalizedEmail,
       _id: { $ne: user._id }
     });
 
     if (existingUser) {
+=======
+    const existingUser = store.findUserByEmail(normalizedEmail);
+
+    if (existingUser && existingUser.id !== user.id) {
+>>>>>>> 4a883649 (patient management module added)
       res.status(400);
       throw new Error("Another account already uses this email");
     }
@@ -111,7 +145,11 @@ const updateProfile = asyncHandler(async (req, res) => {
     user.passwordHash = hashPassword(req.body.newPassword.trim());
   }
 
+<<<<<<< HEAD
   await user.save();
+=======
+  store.saveUser(user);
+>>>>>>> 4a883649 (patient management module added)
 
   res.status(200).json({
     token: generateToken(user),

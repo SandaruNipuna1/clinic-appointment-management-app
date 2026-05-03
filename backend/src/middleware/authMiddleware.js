@@ -1,5 +1,9 @@
 const jwt = require("jsonwebtoken");
 
+<<<<<<< HEAD
+=======
+const store = require("../data/localStore");
+>>>>>>> 4a883649 (patient management module added)
 const asyncHandler = require("../utils/asyncHandler");
 
 const protect = asyncHandler(async (req, res, next) => {
@@ -14,8 +18,12 @@ const protect = asyncHandler(async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+<<<<<<< HEAD
     const User = require("../models/User");
     const user = await User.findById(decoded.id).select("fullName email role");
+=======
+    const user = store.findUserById(decoded.id);
+>>>>>>> 4a883649 (patient management module added)
 
     if (!user) {
       res.status(401);
@@ -23,7 +31,11 @@ const protect = asyncHandler(async (req, res, next) => {
     }
 
     req.user = {
+<<<<<<< HEAD
       id: user._id.toString(),
+=======
+      id: user.id,
+>>>>>>> 4a883649 (patient management module added)
       role: user.role,
       fullName: user.fullName,
       email: user.email

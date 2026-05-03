@@ -1,5 +1,9 @@
 {
+<<<<<<< HEAD
   "name": "clinic-appointment-management-app",
+=======
+  "name": "patient-management-app",
+>>>>>>> 4a883649 (patient management module added)
   "version": "1.0.0",
   "private": true,
   "workspaces": [

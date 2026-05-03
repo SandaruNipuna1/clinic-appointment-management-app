@@ -20,8 +20,13 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
+<<<<<<< HEAD
       enum: ["admin", "receptionist", "patient"],
       default: "patient"
+=======
+      enum: ["admin", "receptionist"],
+      default: "receptionist"
+>>>>>>> 4a883649 (patient management module added)
     }
   },
   {

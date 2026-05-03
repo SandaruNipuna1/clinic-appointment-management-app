@@ -36,10 +36,15 @@ export default function LoginScreen({ navigation }) {
     <ScreenContainer>
       <View style={styles.heroCard}>
         <Text style={styles.eyebrow}>Welcome Back</Text>
+<<<<<<< HEAD
         <Text style={styles.title}>Login to Clinic Management</Text>
         <Text style={styles.subtitle}>
           Sign in with a registered account to access the role-based clinic modules.
         </Text>
+=======
+        <Text style={styles.title}>Login to Patient Management</Text>
+        <Text style={styles.subtitle}>Sign in with a registered admin or receptionist account to manage patient records.</Text>
+>>>>>>> 4a883649 (patient management module added)
       </View>
       <FormInput label="Email" value={email} onChangeText={setEmail} placeholder="name@example.com" />
       <FormInput

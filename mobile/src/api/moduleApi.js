@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { apiRequest, normalizeApiBaseUrl } from "./apiClient";
 
 const uploadRequest = async ({ baseUrl, token, endpoint, file }) => {
@@ -151,6 +152,11 @@ export const moduleApi = {
       method: "DELETE"
     }),
 
+=======
+import { apiRequest } from "./apiClient";
+
+export const moduleApi = {
+>>>>>>> 4a883649 (patient management module added)
   getPatients: ({ baseUrl, token }) =>
     apiRequest({
       baseUrl,
@@ -182,6 +188,7 @@ export const moduleApi = {
       token,
       endpoint: `/patients/${patientId}`,
       method: "DELETE"
+<<<<<<< HEAD
     }),
 
   getSchedules: ({ baseUrl, token }) =>
@@ -215,5 +222,7 @@ export const moduleApi = {
       token,
       endpoint: `/schedules/${scheduleId}`,
       method: "DELETE"
+=======
+>>>>>>> 4a883649 (patient management module added)
     })
 };

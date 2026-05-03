@@ -3,5 +3,9 @@ mobile/node_modules/
 mobile/.expo/
 mobile/.env
 backend/.env
+<<<<<<< HEAD
+=======
+.codex-home/
+>>>>>>> 4a883649 (patient management module added)
 .idea/
 .DS_Store

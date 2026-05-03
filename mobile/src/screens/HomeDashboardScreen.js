@@ -7,6 +7,7 @@ import ScreenContainer from "../components/ScreenContainer";
 import { useAppData } from "../context/AppDataContext";
 import { useAuth } from "../context/AuthContext";
 
+<<<<<<< HEAD
 const ROLE_META = {
   patient: {
     label: "Patient",
@@ -41,10 +42,16 @@ export default function HomeDashboardScreen({ navigation }) {
     canViewReports ? { key: "reports", value: reports.length, label: "Reports" } : null,
     canViewSchedules ? { key: "schedules", value: schedules.length, label: "Schedules" } : null
   ].filter(Boolean);
+=======
+export default function HomeDashboardScreen({ navigation }) {
+  const { patients, refreshData } = useAppData();
+  const { currentUser, logout } = useAuth();
+>>>>>>> 4a883649 (patient management module added)
 
   return (
     <ScreenContainer>
       <View style={styles.heroCard}>
+<<<<<<< HEAD
         <Text style={styles.eyebrow}>Clinic Management System</Text>
         <Text style={styles.title}>Simple clinic management app</Text>
         <View
@@ -61,6 +68,12 @@ export default function HomeDashboardScreen({ navigation }) {
         </View>
         <Text style={styles.subtitle}>
           Signed in as {currentUser?.fullName}. Use the modules below that are available for your role.
+=======
+        <Text style={styles.eyebrow}>Patient Management</Text>
+        <Text style={styles.title}>Standalone patient records app</Text>
+        <Text style={styles.subtitle}>
+          Signed in as {currentUser?.fullName}. Use this workspace to manage patient profiles and keep contact details up to date.
+>>>>>>> 4a883649 (patient management module added)
         </Text>
 
         <View style={styles.topActionRow}>
@@ -79,6 +92,7 @@ export default function HomeDashboardScreen({ navigation }) {
             <Text style={[styles.topActionLabel, styles.logoutLabel]}>Sign Out</Text>
           </Pressable>
         </View>
+<<<<<<< HEAD
         <View style={styles.metricRow}>
           {summaryCards.map((card) => (
             <View key={card.key} style={styles.metricCard}>
@@ -158,6 +172,28 @@ export default function HomeDashboardScreen({ navigation }) {
       ) : null}
 
       {currentUser?.role === "admin" ? <PrimaryButton title="Refresh Data" onPress={resetDemoData} variant="ghost" /> : null}
+=======
+
+        <View style={styles.metricRow}>
+          <View style={styles.metricCard}>
+            <Text style={styles.metricValue}>{patients.length}</Text>
+            <Text style={styles.metricLabel}>Active Patients</Text>
+          </View>
+        </View>
+      </View>
+
+      <InfoCard
+        title="Patient Management"
+        lines={[
+          "View patients, add new records, update details, and search by name.",
+          "Keep the clinic's basic patient contact information organized in one place."
+        ]}
+      >
+        <PrimaryButton title="Open Patient Module" onPress={() => navigation.navigate("PatientList")} />
+      </InfoCard>
+
+      <PrimaryButton title="Refresh Patients" onPress={refreshData} variant="ghost" />
+>>>>>>> 4a883649 (patient management module added)
     </ScreenContainer>
   );
 }
@@ -213,6 +249,7 @@ const styles = StyleSheet.create({
     lineHeight: 36,
     marginBottom: 10
   },
+<<<<<<< HEAD
   roleBadge: {
     alignSelf: "flex-start",
     borderRadius: 999,
@@ -235,6 +272,8 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: 0.8
   },
+=======
+>>>>>>> 4a883649 (patient management module added)
   subtitle: {
     color: "#c3dbe0",
     fontSize: 15,

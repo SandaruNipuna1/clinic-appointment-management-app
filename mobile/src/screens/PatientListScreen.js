@@ -67,7 +67,11 @@ export default function PatientListScreen({ navigation }) {
       {filteredPatients.map((patient) => (
         <InfoCard
           key={patient.id}
+<<<<<<< HEAD
           title={`${patient.name} • ${patient.id}`}
+=======
+          title={`${patient.name} - ${patient.id}`}
+>>>>>>> 4a883649 (patient management module added)
           lines={[
             `Date of Birth: ${patient.dateOfBirth}`,
             `Gender: ${patient.gender}`,

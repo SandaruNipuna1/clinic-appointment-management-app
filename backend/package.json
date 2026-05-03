@@ -1,9 +1,17 @@
 {
+<<<<<<< HEAD
   "name": "clinic-app-backend",
   "version": "1.0.0",
   "main": "src/server.js",
   "scripts": {
     "dev": "nodemon src/server.js",
+=======
+  "name": "patient-management-backend",
+  "version": "1.0.0",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "node src/server.js",
+>>>>>>> 4a883649 (patient management module added)
     "start": "node src/server.js"
   },
   "dependencies": {

@@ -1,11 +1,18 @@
+<<<<<<< HEAD
 # Clinic Appointment Management App
 
 A mobile and backend application for managing clinic appointments. The project includes appointment booking, rescheduling, cancellation, appointment history, and MongoDB data storage.
+=======
+# Patient Management App
+
+This standalone project contains the patient management slice extracted from the clinic app.
+>>>>>>> 4a883649 (patient management module added)
 
 ## Tech Stack
 
 - Backend: Node.js, Express, MongoDB, Mongoose
 - Mobile: React Native with Expo
+<<<<<<< HEAD
 - Testing: Jest
 
 ## Project Structure
@@ -23,6 +30,20 @@ A mobile and backend application for managing clinic appointments. The project i
 - Prevent double-booking for the same doctor and time slot
 - Store appointment data in MongoDB
 - Run backend tests for appointment logic
+=======
+
+## Project Structure
+
+- `backend/` Express API and database logic for patient records and auth
+- `mobile/` Expo mobile application for patient management
+
+## Features
+
+- Sign up or log in with admin or receptionist access
+- View all active patients
+- Create, edit, search, and remove patient records
+- Store patient data in MongoDB
+>>>>>>> 4a883649 (patient management module added)
 
 ## Getting Started
 
@@ -51,11 +72,15 @@ Set `EXPO_PUBLIC_API_BASE_URL` in `mobile/.env` to the backend URL your device o
 
 ### 3. Start MongoDB
 
+<<<<<<< HEAD
 If MongoDB is installed with Homebrew:
 
 ```bash
 brew services start mongodb-community
 ```
+=======
+Start your local MongoDB service before launching the backend.
+>>>>>>> 4a883649 (patient management module added)
 
 ### 4. Run the backend
 
@@ -69,6 +94,7 @@ npm run dev:backend
 npm run dev:mobile
 ```
 
+<<<<<<< HEAD
 ## Mobile Testing
 
 If you test the Expo app on a physical phone, make sure `EXPO_PUBLIC_API_BASE_URL` in [mobile/.env.example](/Users/sandarunipuna/Documents/Projects/Clinic Appointment Management App/mobile/.env.example) uses your computer's local IP address instead of `localhost`.
@@ -82,6 +108,19 @@ If you test the Expo app on a physical phone, make sure `EXPO_PUBLIC_API_BASE_UR
 - `PATCH /api/appointments/:id`
 - `PATCH /api/appointments/:id/cancel`
 - `DELETE /api/appointments/:id`
+=======
+## API Endpoints
+
+- `POST /api/auth/signup`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
+- `PATCH /api/auth/me`
+- `GET /api/patients`
+- `GET /api/patients/:id`
+- `POST /api/patients`
+- `PUT /api/patients/:id`
+- `DELETE /api/patients/:id`
+>>>>>>> 4a883649 (patient management module added)
 
 ## Running Tests
 
@@ -91,4 +130,8 @@ npm run test:backend
 
 ## Database
 
+<<<<<<< HEAD
 The application uses the `clinic_appointment_app` MongoDB database and stores appointment records in the `appointments` collection.
+=======
+The application uses MongoDB for `users` and `patients`.
+>>>>>>> 4a883649 (patient management module added)

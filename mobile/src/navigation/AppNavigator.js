@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import { useAppData } from "../context/AppDataContext";
 import { useAuth } from "../context/AuthContext";
+<<<<<<< HEAD
 import AppointmentDetailScreen from "../screens/AppointmentDetailScreen";
 import AppointmentFormScreen from "../screens/AppointmentFormScreen";
 import AppointmentListScreen from "../screens/AppointmentListScreen";
@@ -20,6 +21,13 @@ import PatientListScreen from "../screens/PatientListScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import ScheduleFormScreen from "../screens/ScheduleFormScreen";
 import ScheduleListScreen from "../screens/ScheduleListScreen";
+=======
+import HomeDashboardScreen from "../screens/HomeDashboardScreen";
+import LoginScreen from "../screens/LoginScreen";
+import PatientFormScreen from "../screens/PatientFormScreen";
+import PatientListScreen from "../screens/PatientListScreen";
+import ProfileScreen from "../screens/ProfileScreen";
+>>>>>>> 4a883649 (patient management module added)
 import SignupScreen from "../screens/SignupScreen";
 
 const Stack = createNativeStackNavigator();
@@ -53,6 +61,7 @@ export default function AppNavigator() {
           <>
             <Stack.Screen name="Home" component={HomeDashboardScreen} options={{ title: "Home" }} />
             <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: "Profile" }} />
+<<<<<<< HEAD
             <Stack.Screen name="DoctorList" component={DoctorListScreen} options={{ title: "Doctor Management" }} />
             <Stack.Screen name="DoctorForm" component={DoctorManagementFormScreen} options={{ title: "Doctor Form" }} />
             <Stack.Screen name="DoctorDetail" component={DoctorDetailsScreen} options={{ title: "Doctor Details" }} />
@@ -78,6 +87,10 @@ export default function AppNavigator() {
               component={MedicalReportDetailScreen}
               options={{ title: "Report Details" }}
             />
+=======
+            <Stack.Screen name="PatientList" component={PatientListScreen} options={{ title: "Patient Management" }} />
+            <Stack.Screen name="PatientForm" component={PatientFormScreen} options={{ title: "Patient Form" }} />
+>>>>>>> 4a883649 (patient management module added)
           </>
         ) : (
           <>
