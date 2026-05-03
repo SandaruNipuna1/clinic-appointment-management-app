@@ -48,7 +48,7 @@ const createAppointmentValidation = [
   body("reason").trim().notEmpty().withMessage("reason is required"),
   // Status is optional, but if provided it must be one of the allowed values
   body("status").optional().isIn(STATUS_OPTIONS).withMessage("status must be Scheduled, Completed, or Cancelled"),
-  // Patient ID is optional, but if present it must be a valid object id
+  // Patient ID is optional for self-booking; staff-created appointments are checked in the controller
   body("patientId")
     .optional({ nullable: true, checkFalsy: true })
     .custom((value) => {
@@ -95,7 +95,7 @@ const updateAppointmentValidation = [
   body("reason").optional().trim().notEmpty().withMessage("reason cannot be empty"),
   // Status can be updated if it's one of the allowed options
   body("status").optional().isIn(STATUS_OPTIONS).withMessage("status must be Scheduled, Completed, or Cancelled"),
-  // Patient ID can be updated but must still be a valid id when provided
+  // Patient ID can be updated, but active-patient rules are checked in the controller
   body("patientId")
     .optional({ nullable: true, checkFalsy: true })
     .custom((value) => {

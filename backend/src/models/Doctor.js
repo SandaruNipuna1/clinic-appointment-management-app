@@ -1,9 +1,9 @@
 // This file defines the structure for doctor information in the database.
-// Doctors have personal details, specialization, availability, and contact information.
+// Doctors store profile and contact information. Availability is managed by schedules.
 
 const mongoose = require("mongoose");
 
-// Define the schema for doctor's availability (working hours)
+// Legacy availability shape kept for old documents; new availability uses Schedule records.
 const availabilitySchema = new mongoose.Schema(
   {
     // Day of the week (e.g., "Monday")
@@ -77,12 +77,12 @@ const doctorSchema = new mongoose.Schema(
       trim: true,
       default: ""
     },
-    // List of available time slots
+    // Legacy availability data; Schedule records are the current source of truth
     availability: {
       type: [availabilitySchema],
       default: []
     },
-    // Pre-formatted availability text
+    // Legacy pre-formatted availability text
     availabilityLabel: {
       type: String,
       trim: true,

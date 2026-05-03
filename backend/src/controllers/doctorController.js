@@ -1,6 +1,6 @@
 // This file handles all operations related to doctors.
 // It includes functions to get, create, update, and delete doctor records.
-// Doctors cannot be deleted if they have appointments or medical reports.
+// Doctors cannot be deleted if appointments, reports, or schedules still reference them.
 
 const Doctor = require("../models/Doctor");
 const Appointment = require("../models/Appointment");
@@ -113,11 +113,20 @@ const deleteDoctor = asyncHandler(async (req, res) => {
     throw new Error("Doctor cannot be removed while appointments still reference this doctor");
   }
 
-  const linkedReports = await MedicalReport.exists({ doctorName: doctor.name });
+  const linkedReports = await MedicalReport.exists({
+    $or: [{ doctorId: doctor._id }, { doctorName: doctor.name }]
+  });
 
   if (linkedReports) {
     res.status(400);
     throw new Error("Doctor cannot be removed while medical reports still reference this doctor");
+  }
+
+  const linkedSchedules = await Schedule.exists({ doctorId: doctor._id, isActive: true });
+
+  if (linkedSchedules) {
+    res.status(400);
+    throw new Error("Doctor cannot be removed while schedules still reference this doctor");
   }
 
   doctor.isActive = false;

@@ -10,7 +10,7 @@ const appointmentSchema = new mongoose.Schema(
       trim: true,
       sparse: true
     },
-    // Link to the patient record if one exists
+    // Link to the Patient profile. Null is only for legacy records.
     patientId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Patient",
@@ -64,8 +64,7 @@ const appointmentSchema = new mongoose.Schema(
   }
 );
 
-// Make it faster to search for appointments by doctor, date, and time
-appointmentSchema.index({ doctorId: 1, date: 1, time: 1 });
+// Prevent double-booking active appointments for the same doctor/date/time slot
 appointmentSchema.index(
   { doctorId: 1, date: 1, time: 1 },
   {

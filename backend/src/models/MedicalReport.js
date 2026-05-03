@@ -25,7 +25,7 @@ const medicalReportSchema = new mongoose.Schema(
       required: true,
       trim: true
     },
-    // Doctor's name who created the report
+    // Doctor's display name for this report
     doctorName: {
       type: String,
       required: true,
