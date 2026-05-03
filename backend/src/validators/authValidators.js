@@ -36,8 +36,11 @@ const loginValidation = [
 const updateProfileValidation = [
   body("fullName").optional().trim().notEmpty().withMessage("Full name cannot be empty"),
   body("email").optional().isEmail().withMessage("Please enter a valid email"),
-  body("currentPassword").optional().trim(),
-  body("newPassword").optional().isLength({ min: 6 }).withMessage("Password must be at least 6 characters")
+  body("currentPassword").optional({ checkFalsy: true }).trim(),
+  body("newPassword")
+    .optional({ checkFalsy: true })
+    .isLength({ min: 6 })
+    .withMessage("Password must be at least 6 characters")
 ];
 
 module.exports = {

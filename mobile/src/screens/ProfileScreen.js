@@ -52,13 +52,18 @@ export default function ProfileScreen() {
       }
     }
 
-    try {
-      await updateProfile({
+    const payload = {
         fullName,
-        email,
-        currentPassword: currentPassword.trim(),
-        newPassword: newPassword.trim()
-      });
+        email
+      };
+
+    if (isChangingPassword) {
+      payload.currentPassword = currentPassword.trim();
+      payload.newPassword = newPassword.trim();
+    }
+
+    try {
+      await updateProfile(payload);
       setCurrentPassword("");
       setNewPassword("");
       setConfirmNewPassword("");
