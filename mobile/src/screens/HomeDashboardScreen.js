@@ -60,7 +60,7 @@ export default function HomeDashboardScreen({ navigation }) {
       {/* Hero card with welcome and summary */}
       <View style={styles.heroCard}>
         <Text style={styles.eyebrow}>Clinic Management System</Text>
-        <Text style={styles.title}>Simple clinic management app</Text>
+        <Text style={styles.title}>Clinic Management App</Text>
         <View
           style={[
             styles.roleBadge,

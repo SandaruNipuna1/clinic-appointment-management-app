@@ -104,7 +104,7 @@ export function AuthProvider({ children }) {
   };
 
   // Signup function
-  const signup = async ({ fullName, email, password, role, apiBaseUrl }) => {
+  const signup = async ({ fullName, email, password, role, dateOfBirth, gender, phone, address, apiBaseUrl }) => {
     const nextBaseUrl = normalizeApiBaseUrl(apiBaseUrl || authState.apiBaseUrl || DEFAULT_API_BASE_URL);
 
     if (!nextBaseUrl) {
@@ -117,7 +117,11 @@ export function AuthProvider({ children }) {
         fullName,
         email,
         password,
-        role
+        role,
+        dateOfBirth,
+        gender,
+        phone,
+        address
       }
     });
 

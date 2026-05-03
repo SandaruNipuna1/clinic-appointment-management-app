@@ -1,6 +1,8 @@
 const User = require("../models/User");
+const Patient = require("../models/Patient");
 const asyncHandler = require("../utils/asyncHandler");
 const generateToken = require("../utils/generateToken");
+const generateEntityCode = require("../utils/generateEntityCode");
 const { hashPassword, verifyPassword } = require("../utils/passwordUtils");
 
 // Convert a user record into a smaller object we can send back to the client
@@ -21,12 +23,40 @@ const signup = asyncHandler(async (req, res) => {
     throw new Error("Email already exists");
   }
 
+  const role = req.body.role || "patient";
+
+  if (role === "patient") {
+    const existingPatient = await Patient.findOne({ email: normalizedEmail });
+
+    if (existingPatient) {
+      res.status(400);
+      throw new Error("A patient with this email already exists");
+    }
+  }
+
   const user = await User.create({
     fullName: req.body.fullName.trim(),
     email: normalizedEmail,
     passwordHash: hashPassword(req.body.password),
-    role: req.body.role || "patient"
+    role
   });
+
+  if (role === "patient") {
+    try {
+      await Patient.create({
+        name: req.body.fullName.trim(),
+        dateOfBirth: new Date(`${req.body.dateOfBirth}T00:00:00.000Z`),
+        gender: req.body.gender.trim(),
+        phone: req.body.phone.trim(),
+        email: normalizedEmail,
+        address: req.body.address.trim(),
+        patientCode: await generateEntityCode(Patient, "patientCode", "PAT")
+      });
+    } catch (error) {
+      await User.deleteOne({ _id: user._id });
+      throw error;
+    }
+  }
 
   // Return a token and the user info after signup
   res.status(201).json({

@@ -8,12 +8,14 @@
 // - Creates a patient account by default
 
 import React, { useState } from "react";
-import { Alert, StyleSheet, Text } from "react-native";
+import { Alert, StyleSheet, Text, View } from "react-native";
 
 import FormInput from "../components/FormInput";
 import ScreenContainer from "../components/ScreenContainer";
 import { useAuth } from "../context/AuthContext";
 import PrimaryButton from "../components/PrimaryButton";
+
+const GENDER_OPTIONS = ["Male", "Female", "Other"];
 
 export default function SignupScreen() {
   const { signup } = useAuth();
@@ -21,6 +23,10 @@ export default function SignupScreen() {
   // Form state
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [gender, setGender] = useState("Male");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -37,6 +43,16 @@ export default function SignupScreen() {
     // Validate email
     if (!email.trim()) {
       Alert.alert("Email required", "Please enter your email.");
+      return;
+    }
+
+    if (!dateOfBirth.trim() || !gender.trim() || !phone.trim() || !address.trim()) {
+      Alert.alert("Patient details required", "Please enter your date of birth, gender, phone, and address.");
+      return;
+    }
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth.trim())) {
+      Alert.alert("Invalid date of birth", "Please use YYYY-MM-DD format.");
       return;
     }
 
@@ -68,7 +84,16 @@ export default function SignupScreen() {
 
     try {
       // Create new account with patient role
-      await signup({ fullName, email, password, role: "patient" });
+      await signup({
+        fullName,
+        email,
+        password,
+        role: "patient",
+        dateOfBirth,
+        gender,
+        phone,
+        address
+      });
     } catch (error) {
       Alert.alert("Signup failed", error.message);
     }
@@ -84,6 +109,19 @@ export default function SignupScreen() {
 
       {/* Email input */}
       <FormInput label="Email" value={email} onChangeText={setEmail} />
+
+      {/* Patient profile inputs */}
+      <FormInput label="Date of Birth" value={dateOfBirth} onChangeText={setDateOfBirth} placeholder="2002-05-14" />
+
+      <Text style={styles.filterLabel}>Gender</Text>
+      <View style={styles.filterWrap}>
+        {GENDER_OPTIONS.map((option) => (
+          <PrimaryButton key={option} title={option} onPress={() => setGender(option)} variant={gender === option ? "primary" : "ghost"} />
+        ))}
+      </View>
+
+      <FormInput label="Phone" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+      <FormInput label="Address" value={address} onChangeText={setAddress} multiline />
 
       {/* Password input with show/hide */}
       <FormInput
@@ -122,6 +160,20 @@ const styles = StyleSheet.create({
     color: "#60757d",
     fontSize: 15,
     lineHeight: 22,
+    marginBottom: 16
+  },
+  filterLabel: {
+    fontSize: 13,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.9,
+    color: "#4b6972",
+    marginBottom: 10
+  },
+  filterWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
     marginBottom: 16
   }
 });

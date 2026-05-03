@@ -2,6 +2,7 @@ const { body } = require("express-validator");
 
 // Only patients are allowed to sign up through this route
 const SIGNUP_ROLE_OPTIONS = ["patient"];
+const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 // Rules for sign up requests
 const signupValidation = [
@@ -13,6 +14,15 @@ const signupValidation = [
     .bail()
     .isLength({ min: 6 })
     .withMessage("Password must be at least 6 characters"),
+  body("dateOfBirth").custom((value) => {
+    if (!DATE_PATTERN.test(value || "")) {
+      throw new Error("dateOfBirth must use YYYY-MM-DD format");
+    }
+    return true;
+  }),
+  body("gender").trim().notEmpty().withMessage("Gender is required"),
+  body("phone").trim().notEmpty().withMessage("Phone is required"),
+  body("address").trim().notEmpty().withMessage("Address is required"),
   body("role").optional().isIn(SIGNUP_ROLE_OPTIONS).withMessage("Role must be patient")
 ];
 
