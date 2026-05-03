@@ -114,7 +114,7 @@ export default function HomeDashboardScreen({ navigation }) {
             "View all doctors with quick search and specialization filtering.",
             canManageDoctors
               ? "Add, edit, delete, and open detail views for every doctor record."
-              : "Open doctor details to view specialization, availability, and contact details."
+              : "Open doctor details to view specialization and contact details."
           ]}
         >
           <PrimaryButton title="Open Doctor Module" onPress={() => navigation.navigate("DoctorList")} />

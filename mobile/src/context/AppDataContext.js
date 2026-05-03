@@ -18,28 +18,6 @@ const formatDate = (value) => {
   return new Date(value).toISOString().slice(0, 10);
 };
 
-// Helper function to format doctor's availability schedule
-const formatAvailability = (doctor) => {
-  if (doctor.availabilityLabel) {
-    return doctor.availabilityLabel;
-  }
-
-  if (!Array.isArray(doctor.availability) || doctor.availability.length === 0) {
-    return "";
-  }
-
-  const firstEntry = doctor.availability[0];
-  const sameTimeWindow = doctor.availability.every(
-    (entry) => entry.startTime === firstEntry.startTime && entry.endTime === firstEntry.endTime
-  );
-
-  if (sameTimeWindow) {
-    return `${doctor.availability.map((entry) => entry.day).join(", ")} • ${firstEntry.startTime}-${firstEntry.endTime}`;
-  }
-
-  return doctor.availability.map((entry) => `${entry.day} ${entry.startTime}-${entry.endTime}`).join(", ");
-};
-
 // Function to transform doctor data from server format to app format
 const mapDoctor = (doctor) => ({
   rawId: doctor._id,
@@ -48,11 +26,6 @@ const mapDoctor = (doctor) => ({
   specialization: doctor.specialization,
   phone: doctor.phone,
   email: doctor.email,
-  availability: formatAvailability(doctor),
-  availabilityDay: doctor.availability?.[0]?.day || "",
-  availabilityDays: Array.isArray(doctor.availability) ? doctor.availability.map((entry) => entry.day) : [],
-  availabilityStartTime: doctor.availability?.[0]?.startTime || "",
-  availabilityEndTime: doctor.availability?.[0]?.endTime || "",
   roomNumber: doctor.roomNumber || "",
 });
 
@@ -208,24 +181,11 @@ export function AppDataProvider({ children }) {
 
   // Function to create or update a doctor
   const upsertDoctor = async (doctor) => {
-    const availability =
-      Array.isArray(doctor.availabilityDays) &&
-      doctor.availabilityDays.length > 0 &&
-      doctor.availabilityStartTime &&
-      doctor.availabilityEndTime
-        ? doctor.availabilityDays.map((day) => ({
-            day: day.trim(),
-            startTime: doctor.availabilityStartTime.trim(),
-            endTime: doctor.availabilityEndTime.trim()
-          }))
-      : [];
-
     const payload = {
       name: doctor.name.trim(),
       specialization: doctor.specialization.trim(),
       phone: doctor.phone.trim(),
       email: doctor.email.trim().toLowerCase(),
-      availability,
       roomNumber: doctor.roomNumber.trim()
     };
 

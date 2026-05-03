@@ -104,14 +104,6 @@ const timeWithinRange = (time, startTime, endTime) => {
 
 const assertDoctorAvailableForSlot = async ({ doctor, date, time }) => {
   const dayName = getUtcDayName(date);
-  const matchingDoctorAvailability = Array.isArray(doctor.availability)
-    ? doctor.availability.some(
-        (entry) =>
-          normalizeText(entry.day) === normalizeText(dayName) &&
-          timeWithinRange(time, entry.startTime, entry.endTime)
-      )
-    : false;
-
   const matchingSchedules = await Schedule.find({
     $or: [{ doctorId: doctor._id }, { doctorName: doctor.name }],
     availableDays: dayName,
@@ -120,7 +112,7 @@ const assertDoctorAvailableForSlot = async ({ doctor, date, time }) => {
   }).lean();
   const matchingSchedule = matchingSchedules.some((schedule) => timeWithinRange(time, schedule.startTime, schedule.endTime));
 
-  if (!matchingDoctorAvailability && !matchingSchedule) {
+  if (!matchingSchedule) {
     const error = new Error("Doctor is not available for the selected day and time");
     error.statusCode = 400;
     throw error;

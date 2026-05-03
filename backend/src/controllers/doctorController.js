@@ -8,11 +8,6 @@ const MedicalReport = require("../models/MedicalReport");
 const Schedule = require("../models/Schedule");
 const asyncHandler = require("../utils/asyncHandler");
 const generateEntityCode = require("../utils/generateEntityCode");
-const { assertStartBeforeEnd } = require("../utils/clinicRecordHelpers");
-
-const assertValidAvailabilityWindows = (availability = []) => {
-  availability.forEach((entry) => assertStartBeforeEnd(entry.startTime, entry.endTime));
-};
 
 // Get all active doctors
 const getAllDoctors = asyncHandler(async (req, res) => {
@@ -41,8 +36,6 @@ const getDoctorById = asyncHandler(async (req, res) => {
 
 // Create a new doctor
 const createDoctor = asyncHandler(async (req, res) => {
-  assertValidAvailabilityWindows(req.body.availability);
-
   const existingDoctor = await Doctor.findOne({
     email: req.body.email.toLowerCase().trim()
   });
@@ -83,10 +76,6 @@ const updateDoctor = asyncHandler(async (req, res) => {
     }
 
     req.body.email = normalizedEmail;
-  }
-
-  if (req.body.availability) {
-    assertValidAvailabilityWindows(req.body.availability);
   }
 
   const previousName = doctor.name;

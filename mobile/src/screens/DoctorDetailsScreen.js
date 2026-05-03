@@ -1,5 +1,5 @@
 // This screen shows detailed information for one doctor.
-// It displays contact details, availability, and navigation options for editing when permitted.
+// It displays contact details and navigation options for editing when permitted.
 // It also offers a back button to return to the doctor list.
 
 import React, { useMemo } from "react";
@@ -36,7 +36,6 @@ export default function DoctorDetailsScreen({ navigation, route }) {
           `Specialization: ${doctor.specialization}`,
           `Phone: ${doctor.phone}`,
           `Email: ${doctor.email}`,
-          `Availability: ${doctor.availability}`,
           `Room: ${doctor.roomNumber || "-"}`
         ]}
       >

@@ -90,7 +90,6 @@ export default function DoctorListScreen({ navigation }) {
             `Specialization: ${doctor.specialization}`,
             `Phone: ${doctor.phone}`,
             `Email: ${doctor.email}`,
-            `Availability: ${doctor.availability}`,
             `Room: ${doctor.roomNumber || "-"}`
           ]}
         >
