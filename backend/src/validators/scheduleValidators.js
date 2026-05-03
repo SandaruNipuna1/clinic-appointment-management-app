@@ -32,6 +32,14 @@ const scheduleIdParamValidation = [
 // Validation rules for creating a new schedule
 const createScheduleValidation = [
   body("doctorName").trim().notEmpty().withMessage("doctor name is required"),
+  body("doctorId")
+    .optional({ nullable: true, checkFalsy: true })
+    .custom((value) => {
+      if (!isValidObjectId(value)) {
+        throw new Error("doctorId must be a valid MongoDB ObjectId");
+      }
+      return true;
+    }),
   body("availableDays").custom((value) => {
     if (!Array.isArray(value) || value.length === 0) {
       throw new Error("at least one available day is required");
@@ -47,6 +55,14 @@ const createScheduleValidation = [
 const updateScheduleValidation = [
   ...scheduleIdParamValidation,
   body("doctorName").optional().trim().notEmpty().withMessage("doctor name cannot be empty"),
+  body("doctorId")
+    .optional({ nullable: true, checkFalsy: true })
+    .custom((value) => {
+      if (!isValidObjectId(value)) {
+        throw new Error("doctorId must be a valid MongoDB ObjectId");
+      }
+      return true;
+    }),
   body("availableDays")
     .optional()
     .custom((value) => {

@@ -23,6 +23,12 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
+  if (err.code === 11000) {
+    return res.status(409).json({
+      message: "A record with the same unique value already exists"
+    });
+  }
+
   // Get the appropriate status code
   const statusCode = err.statusCode || (res.statusCode === 200 ? 500 : res.statusCode);
 

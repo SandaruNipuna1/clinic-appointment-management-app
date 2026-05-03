@@ -67,7 +67,7 @@ const formatMinuteInput = (value) => {
 const validateSchedule = (values) => {
   const errors = {};
 
-  ["doctorName", "startTime", "endTime", "status"].forEach((field) => {
+  ["doctorId", "doctorName", "startTime", "endTime", "status"].forEach((field) => {
     if (!String(values[field] || "").trim()) {
       errors[field] = `${field} is required`;
     }
@@ -91,6 +91,7 @@ export default function ScheduleFormScreen({ navigation, route }) {
   const initialStartTime = convertTo12Hour(existingSchedule?.startTime || "09:00");
   const initialEndTime = convertTo12Hour(existingSchedule?.endTime || "17:00");
   const [values, setValues] = useState({
+    doctorId: existingSchedule?.doctorId || doctors[0]?.rawId || null,
     doctorName: existingSchedule?.doctorName || doctors[0]?.name || "",
     availableDays: existingSchedule?.availableDays?.length ? existingSchedule.availableDays : ["Monday"],
     startTime: existingSchedule?.startTime || "09:00",
@@ -250,6 +251,7 @@ export default function ScheduleFormScreen({ navigation, route }) {
                 key={doctor.rawId}
                 style={[styles.optionChip, values.doctorName === doctor.name && styles.optionChipSelected]}
                 onPress={() => {
+                  handleChange("doctorId", doctor.rawId);
                   handleChange("doctorName", doctor.name);
                   setShowDoctors(false);
                 }}

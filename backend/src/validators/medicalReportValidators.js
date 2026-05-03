@@ -24,6 +24,12 @@ const medicalReportIdParamValidation = [
 const createMedicalReportValidation = [
   body("patientName").trim().notEmpty().withMessage("patientName is required"),
   body("doctorName").trim().notEmpty().withMessage("doctorName is required"),
+  body("doctorId").custom((value) => {
+    if (!isValidObjectId(value)) {
+      throw new Error("doctorId must be a valid MongoDB ObjectId");
+    }
+    return true;
+  }),
   body("diagnosis").trim().notEmpty().withMessage("diagnosis is required"),
   body("symptoms").trim().notEmpty().withMessage("symptoms is required"),
   body("treatment").trim().notEmpty().withMessage("treatment is required"),
@@ -36,7 +42,6 @@ const createMedicalReportValidation = [
   }),
   body("additionalNotes").optional().trim(),
   body("patientId")
-    .optional({ nullable: true, checkFalsy: true })
     .custom((value) => {
       if (!isValidObjectId(value)) {
         throw new Error("patientId must be a valid MongoDB ObjectId");
@@ -50,6 +55,14 @@ const updateMedicalReportValidation = [
   ...medicalReportIdParamValidation,
   body("patientName").optional().trim().notEmpty().withMessage("patientName cannot be empty"),
   body("doctorName").optional().trim().notEmpty().withMessage("doctorName cannot be empty"),
+  body("doctorId")
+    .optional({ nullable: true, checkFalsy: true })
+    .custom((value) => {
+      if (!isValidObjectId(value)) {
+        throw new Error("doctorId must be a valid MongoDB ObjectId");
+      }
+      return true;
+    }),
   body("diagnosis").optional().trim().notEmpty().withMessage("diagnosis cannot be empty"),
   body("symptoms").optional().trim().notEmpty().withMessage("symptoms cannot be empty"),
   body("treatment").optional().trim().notEmpty().withMessage("treatment cannot be empty"),

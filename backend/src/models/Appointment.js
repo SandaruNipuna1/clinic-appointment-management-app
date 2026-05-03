@@ -13,7 +13,7 @@ const appointmentSchema = new mongoose.Schema(
     // Link to the patient record if one exists
     patientId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Patient",
       default: null
     },
     // Patient's name shown on the appointment
@@ -66,6 +66,13 @@ const appointmentSchema = new mongoose.Schema(
 
 // Make it faster to search for appointments by doctor, date, and time
 appointmentSchema.index({ doctorId: 1, date: 1, time: 1 });
+appointmentSchema.index(
+  { doctorId: 1, date: 1, time: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { status: { $in: ["Scheduled", "Completed"] } }
+  }
+);
 // Make it faster to search by patient name and sort by date
 appointmentSchema.index({ patientName: 1, date: -1 });
 

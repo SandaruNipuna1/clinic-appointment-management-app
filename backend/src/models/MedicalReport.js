@@ -13,10 +13,10 @@ const medicalReportSchema = new mongoose.Schema(
       trim: true,
       sparse: true
     },
-    // Reference to the patient (links to User model)
+    // Reference to the patient profile
     patientId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Patient",
       default: null
     },
     // Patient's full name
@@ -30,6 +30,12 @@ const medicalReportSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true
+    },
+    // Doctor this report is associated with
+    doctorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Doctor",
+      default: null
     },
     // Medical diagnosis
     diagnosis: {

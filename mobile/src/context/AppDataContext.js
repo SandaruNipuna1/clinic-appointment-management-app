@@ -57,11 +57,20 @@ const mapDoctor = (doctor) => ({
 });
 
 // Function to transform appointment data from server format to app format
-const mapAppointment = (appointment) => ({
+const normalizePatientId = (patientId, patients = []) => {
+  if (!patientId) {
+    return null;
+  }
+
+  const patient = patients.find((item) => item.rawId === patientId || item.userId === patientId);
+  return patient?.rawId || patientId;
+};
+
+const mapAppointment = (appointment, patients = []) => ({
   rawId: appointment._id,
   id: appointment.appointmentCode || appointment._id,
   patientName: appointment.patientName,
-  patientId: appointment.patientId || null,
+  patientId: normalizePatientId(appointment.patientId, patients),
   doctorId: appointment.doctorId,
   doctorName: appointment.doctorName,
   date: formatDate(appointment.date),
@@ -71,11 +80,12 @@ const mapAppointment = (appointment) => ({
 });
 
 // Function to transform medical report data from server format to app format
-const mapReport = (report) => ({
+const mapReport = (report, patients = []) => ({
   rawId: report._id,
   id: report.reportCode || report._id,
   patientName: report.patientName,
-  patientId: report.patientId || null,
+  patientId: normalizePatientId(report.patientId, patients),
+  doctorId: report.doctorId || null,
   doctorName: report.doctorName,
   diagnosis: report.diagnosis,
   symptoms: report.symptoms,
@@ -92,6 +102,7 @@ const mapReport = (report) => ({
 // Function to transform patient data from server format to app format
 const mapPatient = (patient) => ({
   rawId: patient._id,
+  userId: patient.userId || null,
   id: patient.patientCode || patient._id,
   name: patient.name,
   dateOfBirth: formatDate(patient.dateOfBirth),
@@ -105,6 +116,7 @@ const mapPatient = (patient) => ({
 const mapSchedule = (schedule) => ({
   rawId: schedule._id,
   id: schedule.scheduleCode || schedule._id,
+  doctorId: schedule.doctorId || null,
   doctorName: schedule.doctorName,
   availableDays: Array.isArray(schedule.availableDays)
     ? schedule.availableDays
@@ -164,11 +176,13 @@ export function AppDataProvider({ children }) {
       }
     });
 
+    const mappedPatients = patientResult.status === "fulfilled" ? patientResult.value.map(mapPatient) : [];
+
     setState({
       doctors: doctorResult.status === "fulfilled" ? doctorResult.value.map(mapDoctor) : [],
-      patients: patientResult.status === "fulfilled" ? patientResult.value.map(mapPatient) : [],
-      appointments: appointmentResult.status === "fulfilled" ? appointmentResult.value.map(mapAppointment) : [],
-      reports: reportResult.status === "fulfilled" ? reportResult.value.map(mapReport) : [],
+      patients: mappedPatients,
+      appointments: appointmentResult.status === "fulfilled" ? appointmentResult.value.map((appointment) => mapAppointment(appointment, mappedPatients)) : [],
+      reports: reportResult.status === "fulfilled" ? reportResult.value.map((report) => mapReport(report, mappedPatients)) : [],
       schedules: scheduleResult.status === "fulfilled" ? scheduleResult.value.map(mapSchedule) : []
     });
     setIsReady(true);
@@ -250,9 +264,20 @@ export function AppDataProvider({ children }) {
         report.doctorName === previousDoctor?.name || report.doctorName === nextDoctor.name
           ? {
               ...report,
+              doctorId: nextDoctor.rawId,
               doctorName: nextDoctor.name
             }
           : report
+      );
+
+      const nextSchedules = current.schedules.map((schedule) =>
+        schedule.doctorId === nextDoctor.rawId || schedule.doctorName === previousDoctor?.name
+          ? {
+              ...schedule,
+              doctorId: nextDoctor.rawId,
+              doctorName: nextDoctor.name
+            }
+          : schedule
       );
 
       return {
@@ -261,7 +286,7 @@ export function AppDataProvider({ children }) {
         patients: current.patients,
         appointments: nextAppointments,
         reports: nextReports,
-        schedules: current.schedules
+        schedules: nextSchedules
       };
     });
   };
@@ -396,6 +421,7 @@ export function AppDataProvider({ children }) {
     const payload = {
       patientName: report.patientName.trim(),
       patientId: report.patientId || null,
+      doctorId: report.doctorId || null,
       doctorName: report.doctorName.trim(),
       diagnosis: report.diagnosis.trim(),
       symptoms: report.symptoms.trim(),
@@ -466,6 +492,7 @@ export function AppDataProvider({ children }) {
 
   const upsertSchedule = async (schedule) => {
     const payload = {
+      doctorId: schedule.doctorId || null,
       doctorName: schedule.doctorName.trim(),
       availableDays: schedule.availableDays,
       startTime: schedule.startTime.trim(),

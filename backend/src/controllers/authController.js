@@ -4,6 +4,7 @@ const asyncHandler = require("../utils/asyncHandler");
 const generateToken = require("../utils/generateToken");
 const generateEntityCode = require("../utils/generateEntityCode");
 const { hashPassword, verifyPassword } = require("../utils/passwordUtils");
+const { normalizeText, parseDateOnly } = require("../utils/clinicRecordHelpers");
 
 // Convert a user record into a smaller object we can send back to the client
 const serializeUser = (user) => ({
@@ -46,7 +47,7 @@ const signup = asyncHandler(async (req, res) => {
       await Patient.create({
         userId: user._id,
         name: req.body.fullName.trim(),
-        dateOfBirth: new Date(`${req.body.dateOfBirth}T00:00:00.000Z`),
+        dateOfBirth: parseDateOnly(req.body.dateOfBirth, "dateOfBirth"),
         gender: req.body.gender.trim(),
         phone: req.body.phone.trim(),
         email: normalizedEmail,
@@ -109,6 +110,9 @@ const updateProfile = asyncHandler(async (req, res) => {
     throw new Error("User not found");
   }
 
+  const previousEmail = user.email;
+  const previousFullName = user.fullName;
+
   if (req.body.email) {
     const normalizedEmail = req.body.email.trim().toLowerCase();
     const existingUser = await User.findOne({
@@ -149,7 +153,40 @@ const updateProfile = asyncHandler(async (req, res) => {
     user.passwordHash = hashPassword(req.body.newPassword.trim());
   }
 
+  let patientToSync = null;
+
+  if (user.role === "patient") {
+    patientToSync = await Patient.findOne({
+      isActive: true,
+      $or: [{ userId: user._id }, { email: normalizeText(previousEmail) }]
+    });
+
+    if (patientToSync) {
+      if (req.body.email && normalizeText(patientToSync.email) !== normalizeText(user.email)) {
+        const existingPatient = await Patient.findOne({
+          email: normalizeText(user.email),
+          _id: { $ne: patientToSync._id }
+        });
+
+        if (existingPatient) {
+          res.status(400);
+          throw new Error("Another patient profile already uses this email");
+        }
+      }
+    }
+  }
+
   await user.save();
+
+  if (patientToSync) {
+    if (req.body.email) {
+      patientToSync.email = normalizeText(user.email);
+    }
+
+    patientToSync.userId = user._id;
+    patientToSync.name = user.fullName || previousFullName;
+    await patientToSync.save();
+  }
 
   res.status(200).json({
     token: generateToken(user),

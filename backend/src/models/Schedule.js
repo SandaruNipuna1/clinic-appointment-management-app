@@ -13,6 +13,13 @@ const scheduleSchema = new mongoose.Schema(
       trim: true,
       sparse: true
     },
+    // Doctor this schedule belongs to
+    doctorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Doctor",
+      default: null,
+      index: true
+    },
     // Doctor's name
     doctorName: {
       type: String,

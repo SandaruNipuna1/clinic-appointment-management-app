@@ -1,11 +1,18 @@
 // Import the database models for appointments, doctors, and patients
 const Appointment = require("../models/Appointment");
-const Doctor = require("../models/Doctor");
-const Patient = require("../models/Patient");
 // Helper function to handle errors in async functions
 const asyncHandler = require("../utils/asyncHandler");
 // Helper function to create unique appointment codes
 const generateEntityCode = require("../utils/generateEntityCode");
+const {
+  assertDateIsNotPast,
+  assertDoctorAvailableForSlot,
+  findLinkedPatientForUser,
+  getPatientIdsForUser,
+  parseDateOnly,
+  requireActiveDoctor,
+  requireActivePatient
+} = require("../utils/clinicRecordHelpers");
 
 // Turn the appointment data into a regular object so we can send it to the frontend
 const serializeAppointment = (appointment) => ({
@@ -41,12 +48,10 @@ const assertSlotIsAvailable = async ({ appointmentId, doctorId, date, time }) =>
 
 // For patients, create a search query to find only their own appointments
 const getPatientAppointmentQuery = async (user) => {
-  const linkedPatients = user.email
-    ? await Patient.find({ email: user.email.trim().toLowerCase() }).select("_id").lean()
-    : [];
-  const linkedPatientIds = linkedPatients.map((patient) => patient._id);
+  const linkedPatientIds = await getPatientIdsForUser(user);
 
   return {
+    // user.id remains here for legacy records created before patientId was normalized to Patient._id.
     $or: [{ patientId: user.id }, ...(linkedPatientIds.length > 0 ? [{ patientId: { $in: linkedPatientIds } }] : [])]
   };
 };
@@ -97,18 +102,16 @@ const getAppointmentById = asyncHandler(async (req, res) => {
 // Create a new appointment - first check doctor exists and the time slot is free
 const createAppointment = asyncHandler(async (req, res) => {
   // Look up the doctor to make sure they exist and are active
-  const doctor = await Doctor.findOne({
-    _id: req.body.doctorId,
-    isActive: true
-  });
-
-  if (!doctor) {
-    res.status(404);
-    throw new Error("Doctor not found");
-  }
+  const doctor = await requireActiveDoctor(req.body.doctorId);
 
   // Convert the date string into a proper date object
-  const appointmentDate = new Date(`${req.body.date}T00:00:00.000Z`);
+  const appointmentDate = parseDateOnly(req.body.date);
+  assertDateIsNotPast(appointmentDate);
+  await assertDoctorAvailableForSlot({
+    doctor,
+    date: appointmentDate,
+    time: req.body.time
+  });
 
   // Check that the doctor doesn't already have an appointment at this time
   await assertSlotIsAvailable({
@@ -118,12 +121,20 @@ const createAppointment = asyncHandler(async (req, res) => {
   });
 
   const isPatient = req.user.role === "patient";
+  const patient = isPatient
+    ? await findLinkedPatientForUser(req.user)
+    : await requireActivePatient(req.body.patientId);
+
+  if (!patient) {
+    res.status(400);
+    throw new Error("Patient profile not found for this account");
+  }
 
   // Create the appointment in the database
   const appointment = await Appointment.create({
     appointmentCode: await generateEntityCode(Appointment, "appointmentCode", "APT"),
-    patientId: isPatient ? req.user.id : req.body.patientId || null, // Patients book for themselves
-    patientName: isPatient ? req.user.fullName : req.body.patientName.trim(),
+    patientId: patient._id,
+    patientName: patient.name,
     doctorId: doctor._id,
     doctorName: doctor.name,
     date: appointmentDate,
@@ -177,15 +188,7 @@ const updateAppointment = asyncHandler(async (req, res) => {
 
   // If they're changing the doctor, verify the new doctor exists
   if (req.body.doctorId) {
-    const doctor = await Doctor.findOne({
-      _id: req.body.doctorId,
-      isActive: true
-    });
-
-    if (!doctor) {
-      res.status(404);
-      throw new Error("Doctor not found");
-    }
+    const doctor = await requireActiveDoctor(req.body.doctorId);
 
     appointment.doctorId = doctor._id;
     appointment.doctorName = doctor.name;
@@ -194,16 +197,19 @@ const updateAppointment = asyncHandler(async (req, res) => {
 
   // Update patient info if provided
   if (req.body.patientId !== undefined) {
-    appointment.patientId = req.body.patientId || null;
+    const patient = await requireActivePatient(req.body.patientId);
+    appointment.patientId = patient._id;
+    appointment.patientName = patient.name;
   }
 
-  if (req.body.patientName) {
+  if (req.body.patientName && req.body.patientId === undefined) {
     appointment.patientName = req.body.patientName.trim();
   }
 
   // Update date if provided
   if (req.body.date) {
-    nextDate = new Date(`${req.body.date}T00:00:00.000Z`);
+    nextDate = parseDateOnly(req.body.date);
+    assertDateIsNotPast(nextDate);
     appointment.date = nextDate;
   }
 
@@ -225,6 +231,15 @@ const updateAppointment = asyncHandler(async (req, res) => {
 
   // If the appointment is not being cancelled, check that the new time slot is free
   if (nextStatus !== "Cancelled") {
+    if (req.body.doctorId || req.body.date || req.body.time) {
+      const nextDoctor = await requireActiveDoctor(nextDoctorId);
+      await assertDoctorAvailableForSlot({
+        doctor: nextDoctor,
+        date: nextDate,
+        time: nextTime
+      });
+    }
+
     await assertSlotIsAvailable({
       appointmentId: appointment._id,
       doctorId: nextDoctorId,
@@ -268,4 +283,3 @@ module.exports = {
   updateAppointment,
   deleteAppointment
 };
-

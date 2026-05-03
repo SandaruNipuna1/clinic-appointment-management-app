@@ -5,8 +5,14 @@
 const Doctor = require("../models/Doctor");
 const Appointment = require("../models/Appointment");
 const MedicalReport = require("../models/MedicalReport");
+const Schedule = require("../models/Schedule");
 const asyncHandler = require("../utils/asyncHandler");
 const generateEntityCode = require("../utils/generateEntityCode");
+const { assertStartBeforeEnd } = require("../utils/clinicRecordHelpers");
+
+const assertValidAvailabilityWindows = (availability = []) => {
+  availability.forEach((entry) => assertStartBeforeEnd(entry.startTime, entry.endTime));
+};
 
 // Get all active doctors
 const getAllDoctors = asyncHandler(async (req, res) => {
@@ -35,6 +41,8 @@ const getDoctorById = asyncHandler(async (req, res) => {
 
 // Create a new doctor
 const createDoctor = asyncHandler(async (req, res) => {
+  assertValidAvailabilityWindows(req.body.availability);
+
   const existingDoctor = await Doctor.findOne({
     email: req.body.email.toLowerCase().trim()
   });
@@ -77,8 +85,25 @@ const updateDoctor = asyncHandler(async (req, res) => {
     req.body.email = normalizedEmail;
   }
 
+  if (req.body.availability) {
+    assertValidAvailabilityWindows(req.body.availability);
+  }
+
+  const previousName = doctor.name;
   Object.assign(doctor, req.body);
   const updatedDoctor = await doctor.save();
+
+  if (updatedDoctor.name !== previousName) {
+    await Appointment.updateMany({ doctorId: updatedDoctor._id }, { doctorName: updatedDoctor.name });
+    await MedicalReport.updateMany(
+      { $or: [{ doctorId: updatedDoctor._id }, { doctorName: previousName }] },
+      { doctorId: updatedDoctor._id, doctorName: updatedDoctor.name }
+    );
+    await Schedule.updateMany(
+      { $or: [{ doctorId: updatedDoctor._id }, { doctorName: previousName }] },
+      { doctorId: updatedDoctor._id, doctorName: updatedDoctor.name }
+    );
+  }
 
   res.status(200).json(updatedDoctor);
 });

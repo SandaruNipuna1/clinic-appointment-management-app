@@ -14,8 +14,8 @@ import { useAuth } from "../context/AuthContext";
 const validateReport = (values) => {
   const errors = {};
 
-  ["patientName", "doctorName", "diagnosis", "symptoms", "treatment", "prescriptionNote", "reportDate"].forEach((field) => {
-    if (!values[field].trim()) {
+  ["patientName", "patientId", "doctorName", "doctorId", "diagnosis", "symptoms", "treatment", "prescriptionNote", "reportDate"].forEach((field) => {
+    if (!String(values[field] || "").trim()) {
       errors[field] = `${field} is required`;
     }
   });
@@ -40,7 +40,7 @@ export default function MedicalReportFormScreen({ navigation, route }) {
     patientName: existingReport?.patientName || initialPatient?.name || "",
     patientId: existingReport?.patientId || initialPatient?.rawId || null,
     doctorName: existingReport?.doctorName || initialDoctor?.name || "",
-    doctorId: initialDoctor?.rawId || null,
+    doctorId: existingReport?.doctorId || initialDoctor?.rawId || null,
     diagnosis: existingReport?.diagnosis || "",
     symptoms: existingReport?.symptoms || "",
     treatment: existingReport?.treatment || "",
@@ -85,6 +85,8 @@ export default function MedicalReportFormScreen({ navigation, route }) {
         ...values,
         rawId: existingReport?.rawId,
         patientName: values.patientName.trim(),
+        patientId: values.patientId,
+        doctorId: values.doctorId,
         doctorName: values.doctorName.trim(),
         diagnosis: values.diagnosis.trim(),
         symptoms: values.symptoms.trim(),

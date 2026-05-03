@@ -3,9 +3,14 @@
 // Patients can only see their own reports, while staff can see all reports.
 
 const MedicalReport = require("../models/MedicalReport");
-const Patient = require("../models/Patient");
 const asyncHandler = require("../utils/asyncHandler");
 const generateEntityCode = require("../utils/generateEntityCode");
+const {
+  getPatientIdsForUser,
+  parseDateOnly,
+  requireActiveDoctor,
+  requireActivePatient
+} = require("../utils/clinicRecordHelpers");
 
 // Helper function to format report data for responses
 const serializeMedicalReport = (report) => ({
@@ -15,12 +20,10 @@ const serializeMedicalReport = (report) => ({
 
 // Helper function to get query for patient reports (patients can only see their own)
 const getPatientReportQuery = async (user) => {
-  const linkedPatients = user.email
-    ? await Patient.find({ email: user.email.trim().toLowerCase() }).select("_id").lean()
-    : [];
-  const linkedPatientIds = linkedPatients.map((patient) => patient._id);
+  const linkedPatientIds = await getPatientIdsForUser(user);
 
   return {
+    // user.id remains here for legacy reports created before patientId was normalized to Patient._id.
     $or: [{ patientId: user.id }, ...(linkedPatientIds.length > 0 ? [{ patientId: { $in: linkedPatientIds } }] : [])]
   };
 };
@@ -62,16 +65,20 @@ const getMedicalReportById = asyncHandler(async (req, res) => {
 
 // Create a new medical report
 const createMedicalReport = asyncHandler(async (req, res) => {
+  const patient = await requireActivePatient(req.body.patientId);
+  const doctor = await requireActiveDoctor(req.body.doctorId);
+
   const report = await MedicalReport.create({
     reportCode: await generateEntityCode(MedicalReport, "reportCode", "REP"),
-    patientId: req.body.patientId || null,
-    patientName: req.body.patientName.trim(),
-    doctorName: req.body.doctorName.trim(),
+    patientId: patient._id,
+    patientName: patient.name,
+    doctorId: doctor._id,
+    doctorName: doctor.name,
     diagnosis: req.body.diagnosis.trim(),
     symptoms: req.body.symptoms.trim(),
     treatment: req.body.treatment.trim(),
     prescriptionNote: req.body.prescriptionNote.trim(),
-    reportDate: new Date(`${req.body.reportDate}T00:00:00.000Z`),
+    reportDate: parseDateOnly(req.body.reportDate, "reportDate"),
     additionalNotes: req.body.additionalNotes?.trim() || ""
   });
 
@@ -88,15 +95,15 @@ const updateMedicalReport = asyncHandler(async (req, res) => {
   }
 
   if (req.body.patientId !== undefined) {
-    report.patientId = req.body.patientId || null;
+    const patient = await requireActivePatient(req.body.patientId);
+    report.patientId = patient._id;
+    report.patientName = patient.name;
   }
 
-  if (req.body.patientName) {
-    report.patientName = req.body.patientName.trim();
-  }
-
-  if (req.body.doctorName) {
-    report.doctorName = req.body.doctorName.trim();
+  if (req.body.doctorId !== undefined) {
+    const doctor = await requireActiveDoctor(req.body.doctorId);
+    report.doctorId = doctor._id;
+    report.doctorName = doctor.name;
   }
 
   if (req.body.diagnosis) {
@@ -116,7 +123,7 @@ const updateMedicalReport = asyncHandler(async (req, res) => {
   }
 
   if (req.body.reportDate) {
-    report.reportDate = new Date(`${req.body.reportDate}T00:00:00.000Z`);
+    report.reportDate = parseDateOnly(req.body.reportDate, "reportDate");
   }
 
   if (req.body.additionalNotes !== undefined) {

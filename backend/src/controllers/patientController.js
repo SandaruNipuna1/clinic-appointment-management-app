@@ -4,8 +4,11 @@
 
 const Patient = require("../models/Patient");
 const User = require("../models/User");
+const Appointment = require("../models/Appointment");
+const MedicalReport = require("../models/MedicalReport");
 const asyncHandler = require("../utils/asyncHandler");
 const generateEntityCode = require("../utils/generateEntityCode");
+const { parseDateOnly } = require("../utils/clinicRecordHelpers");
 
 const normalizeText = (value) => String(value || "").trim().toLowerCase();
 
@@ -60,7 +63,7 @@ const createPatient = asyncHandler(async (req, res) => {
   // Create patient with generated code and normalized data
   const patient = await Patient.create({
     ...req.body,
-    dateOfBirth: new Date(`${req.body.dateOfBirth}T00:00:00.000Z`),
+    dateOfBirth: parseDateOnly(req.body.dateOfBirth, "dateOfBirth"),
     email: normalizedEmail,
     patientCode: await generateEntityCode(Patient, "patientCode", "PAT")
   });
@@ -95,12 +98,19 @@ const updatePatient = asyncHandler(async (req, res) => {
 
   // Convert date of birth to proper format if provided
   if (req.body.dateOfBirth) {
-    req.body.dateOfBirth = new Date(`${req.body.dateOfBirth}T00:00:00.000Z`);
+    req.body.dateOfBirth = parseDateOnly(req.body.dateOfBirth, "dateOfBirth");
   }
+
+  const previousName = patient.name;
 
   // Update and save the patient
   Object.assign(patient, req.body);
   const updatedPatient = await patient.save();
+
+  if (updatedPatient.name !== previousName) {
+    await Appointment.updateMany({ patientId: updatedPatient._id }, { patientName: updatedPatient.name });
+    await MedicalReport.updateMany({ patientId: updatedPatient._id }, { patientName: updatedPatient.name });
+  }
 
   res.status(200).json(updatedPatient);
 });
@@ -112,6 +122,20 @@ const deletePatient = asyncHandler(async (req, res) => {
   if (!patient || !patient.isActive) {
     res.status(404);
     throw new Error("Patient not found");
+  }
+
+  const linkedAppointment = await Appointment.exists({ patientId: patient._id });
+
+  if (linkedAppointment) {
+    res.status(400);
+    throw new Error("Patient cannot be removed while appointments still reference this patient");
+  }
+
+  const linkedReport = await MedicalReport.exists({ patientId: patient._id });
+
+  if (linkedReport) {
+    res.status(400);
+    throw new Error("Patient cannot be removed while medical reports still reference this patient");
   }
 
   patient.isActive = false;
