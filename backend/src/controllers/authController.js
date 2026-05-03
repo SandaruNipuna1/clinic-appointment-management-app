@@ -14,6 +14,22 @@ const serializeUser = (user) => ({
   role: user.role
 });
 
+const deactivatePatientProfileForStaffUser = async (user) => {
+  if (user.role === "patient") {
+    return;
+  }
+
+  await Patient.updateMany(
+    {
+      isActive: true,
+      $or: [{ userId: user._id }, { email: normalizeText(user.email) }]
+    },
+    {
+      isActive: false
+    }
+  );
+};
+
 // Handle user sign up
 const signup = asyncHandler(async (req, res) => {
   const normalizedEmail = req.body.email.trim().toLowerCase();
@@ -82,6 +98,8 @@ const login = asyncHandler(async (req, res) => {
     throw new Error("Incorrect password");
   }
 
+  await deactivatePatientProfileForStaffUser(user);
+
   // Return a token and the user info after login
   res.status(200).json({
     token: generateToken(user),
@@ -97,6 +115,8 @@ const getProfile = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("User not found");
   }
+
+  await deactivatePatientProfileForStaffUser(user);
 
   res.status(200).json(serializeUser(user));
 });
