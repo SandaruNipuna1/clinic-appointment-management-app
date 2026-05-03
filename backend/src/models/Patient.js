@@ -13,6 +13,13 @@ const patientSchema = new mongoose.Schema(
       trim: true,
       sparse: true
     },
+    // Login account this patient profile belongs to, when created through signup
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+      index: true
+    },
     // Patient's full name
     name: {
       type: String,

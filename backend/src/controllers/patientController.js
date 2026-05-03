@@ -3,13 +3,35 @@
 // Patients are soft-deleted by setting isActive to false instead of removing them.
 
 const Patient = require("../models/Patient");
+const User = require("../models/User");
 const asyncHandler = require("../utils/asyncHandler");
 const generateEntityCode = require("../utils/generateEntityCode");
+
+const normalizeText = (value) => String(value || "").trim().toLowerCase();
 
 // Get all active patients, sorted by name
 const getAllPatients = asyncHandler(async (req, res) => {
   const patients = await Patient.find({ isActive: true }).sort({ name: 1 });
-  res.status(200).json(patients);
+  const staffAccounts = await User.find({
+    role: { $ne: "patient" }
+  })
+    .select("_id fullName email")
+    .lean();
+  const staffUserIds = new Set(staffAccounts.map((user) => user._id.toString()));
+  const staffEmails = new Set(staffAccounts.map((user) => normalizeText(user.email)));
+  const staffNames = new Set(staffAccounts.map((user) => normalizeText(user.fullName)));
+
+  res.status(200).json(
+    patients.filter((patient) => {
+      const linkedUserId = patient.userId?.toString();
+
+      return (
+        !staffUserIds.has(linkedUserId) &&
+        !staffEmails.has(normalizeText(patient.email)) &&
+        !staffNames.has(normalizeText(patient.name))
+      );
+    })
+  );
 });
 
 // Get a specific patient by their ID (only if active)

@@ -44,6 +44,7 @@ const signup = asyncHandler(async (req, res) => {
   if (role === "patient") {
     try {
       await Patient.create({
+        userId: user._id,
         name: req.body.fullName.trim(),
         dateOfBirth: new Date(`${req.body.dateOfBirth}T00:00:00.000Z`),
         gender: req.body.gender.trim(),
