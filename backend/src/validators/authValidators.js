@@ -1,7 +1,9 @@
 const { body } = require("express-validator");
 
+// Only patients are allowed to sign up through this route
 const SIGNUP_ROLE_OPTIONS = ["patient"];
 
+// Rules for sign up requests
 const signupValidation = [
   body("fullName").trim().notEmpty().withMessage("Full name is required"),
   body("email").notEmpty().withMessage("Email is required").bail().isEmail().withMessage("Please enter a valid email"),
@@ -14,11 +16,13 @@ const signupValidation = [
   body("role").optional().isIn(SIGNUP_ROLE_OPTIONS).withMessage("Role must be patient")
 ];
 
+// Rules for login requests
 const loginValidation = [
   body("email").notEmpty().withMessage("Email is required").bail().isEmail().withMessage("Please enter a valid email"),
   body("password").notEmpty().withMessage("Password is required")
 ];
 
+// Rules for profile update requests
 const updateProfileValidation = [
   body("fullName").optional().trim().notEmpty().withMessage("Full name cannot be empty"),
   body("email").optional().isEmail().withMessage("Please enter a valid email"),

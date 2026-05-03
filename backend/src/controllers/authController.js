@@ -3,6 +3,7 @@ const asyncHandler = require("../utils/asyncHandler");
 const generateToken = require("../utils/generateToken");
 const { hashPassword, verifyPassword } = require("../utils/passwordUtils");
 
+// Convert a user record into a smaller object we can send back to the client
 const serializeUser = (user) => ({
   id: user._id.toString(),
   fullName: user.fullName,
@@ -10,6 +11,7 @@ const serializeUser = (user) => ({
   role: user.role
 });
 
+// Handle user sign up
 const signup = asyncHandler(async (req, res) => {
   const normalizedEmail = req.body.email.trim().toLowerCase();
   const existingUser = await User.findOne({ email: normalizedEmail });
@@ -26,12 +28,14 @@ const signup = asyncHandler(async (req, res) => {
     role: req.body.role || "patient"
   });
 
+  // Return a token and the user info after signup
   res.status(201).json({
     token: generateToken(user),
     user: serializeUser(user)
   });
 });
 
+// Handle user login
 const login = asyncHandler(async (req, res) => {
   const normalizedEmail = req.body.email.trim().toLowerCase();
   const user = await User.findOne({ email: normalizedEmail });
@@ -46,12 +50,14 @@ const login = asyncHandler(async (req, res) => {
     throw new Error("Incorrect password");
   }
 
+  // Return a token and the user info after login
   res.status(200).json({
     token: generateToken(user),
     user: serializeUser(user)
   });
 });
 
+// Return the current user's profile
 const getProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user.id);
 
@@ -63,6 +69,7 @@ const getProfile = asyncHandler(async (req, res) => {
   res.status(200).json(serializeUser(user));
 });
 
+// Update the current user's profile and password
 const updateProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user.id);
 

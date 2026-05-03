@@ -1,13 +1,19 @@
+// This file handles all the operations for medical reports.
+// It includes functions to create, read, update, delete reports, and manage attachments.
+// Patients can only see their own reports, while staff can see all reports.
+
 const MedicalReport = require("../models/MedicalReport");
 const Patient = require("../models/Patient");
 const asyncHandler = require("../utils/asyncHandler");
 const generateEntityCode = require("../utils/generateEntityCode");
 
+// Helper function to format report data for responses
 const serializeMedicalReport = (report) => ({
   ...(typeof report.toObject === "function" ? report.toObject() : report),
   reportDate: report.reportDate
 });
 
+// Helper function to get query for patient reports (patients can only see their own)
 const getPatientReportQuery = async (user) => {
   const linkedPatients = user.email
     ? await Patient.find({ email: user.email.trim().toLowerCase() }).select("_id").lean()
@@ -19,6 +25,7 @@ const getPatientReportQuery = async (user) => {
   };
 };
 
+// Get all medical reports (filtered by user role)
 const getMedicalReports = asyncHandler(async (req, res) => {
   const query = req.user.role === "patient" ? await getPatientReportQuery(req.user) : {};
   const reports = await MedicalReport.find(query)
@@ -28,6 +35,7 @@ const getMedicalReports = asyncHandler(async (req, res) => {
   res.status(200).json(reports);
 });
 
+// Get a specific medical report by ID
 const getMedicalReportById = asyncHandler(async (req, res) => {
   const report = await MedicalReport.findById(req.params.id);
 
@@ -52,6 +60,7 @@ const getMedicalReportById = asyncHandler(async (req, res) => {
   res.status(200).json(report);
 });
 
+// Create a new medical report
 const createMedicalReport = asyncHandler(async (req, res) => {
   const report = await MedicalReport.create({
     reportCode: await generateEntityCode(MedicalReport, "reportCode", "REP"),
@@ -69,6 +78,7 @@ const createMedicalReport = asyncHandler(async (req, res) => {
   res.status(201).json(serializeMedicalReport(report));
 });
 
+// Update an existing medical report
 const updateMedicalReport = asyncHandler(async (req, res) => {
   const report = await MedicalReport.findById(req.params.id);
 
@@ -118,6 +128,7 @@ const updateMedicalReport = asyncHandler(async (req, res) => {
   res.status(200).json(serializeMedicalReport(updatedReport));
 });
 
+// Delete a medical report
 const deleteMedicalReport = asyncHandler(async (req, res) => {
   const report = await MedicalReport.findById(req.params.id);
 
@@ -131,6 +142,7 @@ const deleteMedicalReport = asyncHandler(async (req, res) => {
   res.status(200).json({ message: "Medical report deleted successfully" });
 });
 
+// Upload an attachment to a medical report
 const uploadMedicalReportAttachment = asyncHandler(async (req, res) => {
   const report = await MedicalReport.findById(req.params.id);
 

@@ -1,3 +1,7 @@
+// This screen allows creating or editing doctor details.
+// It includes input fields for name, specialization, contact details, availability, and other doctor information.
+// Only authorized users can access this form.
+
 import React, { useMemo, useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 

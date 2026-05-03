@@ -1,9 +1,15 @@
+// This file contains validation rules for patient-related API requests.
+// It uses express-validator to check that incoming data meets the required format and constraints.
+
 const { body, param } = require("express-validator");
 const mongoose = require("mongoose");
 
+// Helper function to check if a string is a valid MongoDB ObjectId
 const isValidObjectId = (value) => mongoose.Types.ObjectId.isValid(value);
+// Regular expression pattern for date format (YYYY-MM-DD)
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
+// Validation for patient ID parameter in URL
 const patientIdParamValidation = [
   param("id").custom((value) => {
     if (!isValidObjectId(value)) {
@@ -13,6 +19,7 @@ const patientIdParamValidation = [
   })
 ];
 
+// Validation rules for creating a new patient
 const createPatientValidation = [
   body("name").trim().notEmpty().withMessage("name is required"),
   body("dateOfBirth").custom((value) => {
@@ -27,6 +34,7 @@ const createPatientValidation = [
   body("address").trim().notEmpty().withMessage("address is required")
 ];
 
+// Validation rules for updating an existing patient
 const updatePatientValidation = [
   ...patientIdParamValidation,
   body("name").optional().trim().notEmpty().withMessage("name cannot be empty"),

@@ -1,3 +1,7 @@
+// This screen shows the current user's profile settings.
+// It allows updating the user's name, email, and password, and supports logout.
+// The screen validates input before saving any changes.
+
 import React, { useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
 

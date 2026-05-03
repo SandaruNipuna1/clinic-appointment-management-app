@@ -1,10 +1,16 @@
+// This file contains validation rules for doctor-related API requests.
+// It uses express-validator to check that incoming data meets the required format and constraints.
+
 const { body, param } = require("express-validator");
 const mongoose = require("mongoose");
 
+// Regular expression pattern for 24-hour time format (HH:MM)
 const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
+// Helper function to check if a string is a valid MongoDB ObjectId
 const isValidObjectId = (value) => mongoose.Types.ObjectId.isValid(value);
 
+// Validation for doctor ID parameter in URL
 const doctorIdParamValidation = [
   param("id").custom((value) => {
     if (!isValidObjectId(value)) {
@@ -14,17 +20,20 @@ const doctorIdParamValidation = [
   })
 ];
 
+// Validation for availability array structure
 const doctorAvailabilityValidation = body("availability")
   .optional()
   .isArray()
   .withMessage("availability must be an array");
 
+// Validation for individual availability day entries
 const doctorAvailabilityItemsValidation = body("availability.*.day")
   .optional()
   .trim()
   .notEmpty()
   .withMessage("availability day is required");
 
+// Validation for availability start time format
 const doctorAvailabilityStartTimeValidation = body("availability.*.startTime")
   .optional()
   .custom((value) => {
@@ -34,6 +43,7 @@ const doctorAvailabilityStartTimeValidation = body("availability.*.startTime")
     return true;
   });
 
+// Validation for availability end time format
 const doctorAvailabilityEndTimeValidation = body("availability.*.endTime")
   .optional()
   .custom((value) => {
@@ -43,6 +53,7 @@ const doctorAvailabilityEndTimeValidation = body("availability.*.endTime")
     return true;
   });
 
+// Validation rules for creating a new doctor
 const createDoctorValidation = [
   body("name").trim().notEmpty().withMessage("name is required"),
   body("specialization").trim().notEmpty().withMessage("specialization is required"),
@@ -61,6 +72,7 @@ const createDoctorValidation = [
   doctorAvailabilityEndTimeValidation
 ];
 
+// Validation rules for updating an existing doctor
 const updateDoctorValidation = [
   ...doctorIdParamValidation,
   body("name").optional().trim().notEmpty().withMessage("name cannot be empty"),

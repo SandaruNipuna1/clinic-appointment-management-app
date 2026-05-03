@@ -1,12 +1,18 @@
+// This controller handles all operations related to patient records.
+// It provides functions to create, read, update, and delete patient information.
+// Patients are soft-deleted by setting isActive to false instead of removing them.
+
 const Patient = require("../models/Patient");
 const asyncHandler = require("../utils/asyncHandler");
 const generateEntityCode = require("../utils/generateEntityCode");
 
+// Get all active patients, sorted by name
 const getAllPatients = asyncHandler(async (req, res) => {
   const patients = await Patient.find({ isActive: true }).sort({ name: 1 });
   res.status(200).json(patients);
 });
 
+// Get a specific patient by their ID (only if active)
 const getPatientById = asyncHandler(async (req, res) => {
   const patient = await Patient.findOne({ _id: req.params.id, isActive: true });
 
@@ -18,7 +24,9 @@ const getPatientById = asyncHandler(async (req, res) => {
   res.status(200).json(patient);
 });
 
+// Create a new patient record with validation
 const createPatient = asyncHandler(async (req, res) => {
+  // Normalize email to lowercase and check for duplicates
   const normalizedEmail = req.body.email.toLowerCase().trim();
   const existingPatient = await Patient.findOne({ email: normalizedEmail });
 
@@ -27,6 +35,7 @@ const createPatient = asyncHandler(async (req, res) => {
     throw new Error("A patient with this email already exists");
   }
 
+  // Create patient with generated code and normalized data
   const patient = await Patient.create({
     ...req.body,
     dateOfBirth: new Date(`${req.body.dateOfBirth}T00:00:00.000Z`),
@@ -37,6 +46,7 @@ const createPatient = asyncHandler(async (req, res) => {
   res.status(201).json(patient);
 });
 
+// Update an existing patient's information
 const updatePatient = asyncHandler(async (req, res) => {
   const patient = await Patient.findById(req.params.id);
 
@@ -45,6 +55,7 @@ const updatePatient = asyncHandler(async (req, res) => {
     throw new Error("Patient not found");
   }
 
+  // Check for email conflicts if email is being updated
   if (req.body.email) {
     const normalizedEmail = req.body.email.toLowerCase().trim();
     const existingPatient = await Patient.findOne({
@@ -60,16 +71,19 @@ const updatePatient = asyncHandler(async (req, res) => {
     req.body.email = normalizedEmail;
   }
 
+  // Convert date of birth to proper format if provided
   if (req.body.dateOfBirth) {
     req.body.dateOfBirth = new Date(`${req.body.dateOfBirth}T00:00:00.000Z`);
   }
 
+  // Update and save the patient
   Object.assign(patient, req.body);
   const updatedPatient = await patient.save();
 
   res.status(200).json(updatedPatient);
 });
 
+// Soft delete a patient (mark as inactive)
 const deletePatient = asyncHandler(async (req, res) => {
   const patient = await Patient.findById(req.params.id);
 

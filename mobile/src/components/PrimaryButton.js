@@ -1,3 +1,7 @@
+// This is a reusable button component for the app.
+// It can be styled as primary (main action), secondary, or ghost (subtle).
+// It shows a loading spinner when performing an action and changes appearance when pressed.
+
 import React from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text } from "react-native";
 

@@ -1,3 +1,7 @@
+// This screen lists medical reports and allows searching and filtering.
+// Users can view report details, add new reports, or delete reports when they have permission.
+// The list is updated from the shared app data context.
+
 import React, { useMemo, useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
 

@@ -1,7 +1,10 @@
+// This file controls who can use the backend routes.
+// It checks the user's login token and their role before letting the request continue.
 const jwt = require("jsonwebtoken");
 
 const asyncHandler = require("../utils/asyncHandler");
 
+// This middleware checks the login token and loads the user info.
 const protect = asyncHandler(async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
@@ -22,6 +25,7 @@ const protect = asyncHandler(async (req, res, next) => {
       throw new Error("Not authorized, user not found");
     }
 
+    // Save a small user object on the request for later middleware or route handlers
     req.user = {
       id: user._id.toString(),
       role: user.role,
@@ -36,6 +40,7 @@ const protect = asyncHandler(async (req, res, next) => {
   }
 });
 
+// Only allow admin users
 const adminOnly = (req, res, next) => {
   if (!req.user || req.user.role !== "admin") {
     res.status(403);
@@ -45,6 +50,7 @@ const adminOnly = (req, res, next) => {
   next();
 };
 
+// Allow either admin or receptionist users
 const adminOrReceptionist = (req, res, next) => {
   if (!req.user || !["admin", "receptionist"].includes(req.user.role)) {
     res.status(403);
@@ -54,6 +60,7 @@ const adminOrReceptionist = (req, res, next) => {
   next();
 };
 
+// Allow admin, receptionist, or patient users
 const reportViewer = (req, res, next) => {
   if (!req.user || !["admin", "receptionist", "patient"].includes(req.user.role)) {
     res.status(403);
@@ -63,6 +70,7 @@ const reportViewer = (req, res, next) => {
   next();
 };
 
+// Only allow patient users
 const patientOnly = (req, res, next) => {
   if (!req.user || req.user.role !== "patient") {
     res.status(403);

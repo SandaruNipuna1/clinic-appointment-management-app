@@ -1,5 +1,10 @@
+// This file provides helper functions for making requests to the backend API.
+// It ensures the server URL is formatted correctly and handles authentication and errors.
+
 const API_ROUTE_SEGMENT = "api";
 
+// This function makes sure the base URL for the API is correct.
+// It adds "/api" to the end if it's not already there, so requests go to the right place.
 export function normalizeApiBaseUrl(baseUrl) {
   const trimmedBaseUrl = baseUrl?.trim();
 
@@ -31,6 +36,8 @@ export function normalizeApiBaseUrl(baseUrl) {
   }
 }
 
+// This function makes a request to the API server.
+// It includes the user's token for authentication if provided, and handles errors.
 export async function apiRequest({ baseUrl, token, endpoint, method = "GET", body }) {
   const normalizedBaseUrl = normalizeApiBaseUrl(baseUrl);
 

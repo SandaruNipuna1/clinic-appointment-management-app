@@ -1,4 +1,8 @@
 // React and React Native tools
+// This screen lets users create or edit an appointment.
+// It includes form fields for patient, doctor, date, time, reason, and status.
+// The screen validates input before saving the appointment.
+
 import React, { useMemo, useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 

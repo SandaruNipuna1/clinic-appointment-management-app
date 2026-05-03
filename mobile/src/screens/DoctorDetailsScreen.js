@@ -1,3 +1,7 @@
+// This screen shows detailed information for one doctor.
+// It displays contact details, availability, and navigation options for editing when permitted.
+// It also offers a back button to return to the doctor list.
+
 import React, { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 

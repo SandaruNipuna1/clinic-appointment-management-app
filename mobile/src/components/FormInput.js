@@ -1,3 +1,7 @@
+// This is a reusable component for input fields in forms.
+// It displays a label, the input box, and shows error messages if needed.
+// It can be used for single-line or multi-line text, passwords, and has an optional button on the right.
+
 import React from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 

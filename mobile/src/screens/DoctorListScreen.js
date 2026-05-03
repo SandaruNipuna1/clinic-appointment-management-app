@@ -1,3 +1,7 @@
+// This screen shows the list of doctors available in the clinic.
+// It supports searching, filtering by specialization, and opening doctor details.
+// Admin and receptionist users can also delete doctors from this screen.
+
 import React, { useMemo, useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
 

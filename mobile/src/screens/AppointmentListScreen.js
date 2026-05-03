@@ -1,3 +1,7 @@
+// This screen displays the list of appointments.
+// Users can search, filter by status/date, and manage appointments based on their role.
+// It provides quick access to appointment details and deletion actions.
+
 // Tools from React and React Native
 import React, { useMemo, useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";

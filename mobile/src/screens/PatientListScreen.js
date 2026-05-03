@@ -1,3 +1,7 @@
+// This screen lists all patients in the system.
+// It allows searching patients by name and deleting patient records when permitted.
+// It provides quick access to patient details and patient management actions.
+
 import React, { useMemo, useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
 

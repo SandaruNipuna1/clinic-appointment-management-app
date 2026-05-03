@@ -1,3 +1,7 @@
+// This is a wrapper component for screen content.
+// It provides a safe area for the device, optional scrolling, and a background with subtle glow effects.
+// All screens use this to have consistent padding and styling.
+
 import React from "react";
 import { SafeAreaView, ScrollView, StyleSheet, View } from "react-native";
 

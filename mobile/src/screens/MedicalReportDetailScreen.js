@@ -1,3 +1,7 @@
+// This screen displays a single medical report in detail.
+// It shows diagnosis, treatment, and allows attachment upload when the user can perform that action.
+// Users can also open the attached document and navigate back to the report list.
+
 import React, { useMemo } from "react";
 import { Alert, Linking, StyleSheet, Text } from "react-native";
 import * as DocumentPicker from "expo-document-picker";

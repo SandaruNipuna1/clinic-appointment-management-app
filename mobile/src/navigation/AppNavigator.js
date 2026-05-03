@@ -1,3 +1,7 @@
+// This component handles all navigation in the app.
+// It sets up the navigation stack and shows different screens based on whether the user is logged in.
+// Logged-in users see the main app screens, while logged-out users see login/signup screens.
+
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -22,12 +26,15 @@ import ScheduleFormScreen from "../screens/ScheduleFormScreen";
 import ScheduleListScreen from "../screens/ScheduleListScreen";
 import SignupScreen from "../screens/SignupScreen";
 
+// Create the navigation stack
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
+  // Wait for both auth and data contexts to be ready
   const { isReady } = useAppData();
   const { currentUser, isReady: isAuthReady } = useAuth();
 
+  // Show nothing while loading
   if (!isReady || !isAuthReady) {
     return null;
   }
@@ -35,6 +42,7 @@ export default function AppNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator
+        // Start at Home if logged in, otherwise Login
         initialRouteName={currentUser ? "Home" : "Login"}
         screenOptions={{
           headerLargeTitle: false,
@@ -49,6 +57,7 @@ export default function AppNavigator() {
           }
         }}
       >
+        {/* Show main app screens if user is logged in */}
         {currentUser ? (
           <>
             <Stack.Screen name="Home" component={HomeDashboardScreen} options={{ title: "Home" }} />
@@ -80,6 +89,7 @@ export default function AppNavigator() {
             />
           </>
         ) : (
+          /* Show auth screens if user is not logged in */
           <>
             <Stack.Screen name="Login" component={LoginScreen} options={{ title: "Login" }} />
             <Stack.Screen name="Signup" component={SignupScreen} options={{ title: "Sign Up" }} />

@@ -1,3 +1,7 @@
+// This context manages all the app's data like doctors, patients, appointments, etc.
+// It loads data from the server when the user logs in and provides functions to create, update, or delete items.
+// Other parts of the app use this context to get and modify data.
+
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { moduleApi } from "../api/moduleApi";
@@ -5,6 +9,7 @@ import { useAuth } from "./AuthContext";
 
 const AppDataContext = createContext(null);
 
+// Helper function to format dates for display
 const formatDate = (value) => {
   if (!value) {
     return "";
@@ -13,6 +18,7 @@ const formatDate = (value) => {
   return new Date(value).toISOString().slice(0, 10);
 };
 
+// Helper function to format doctor's availability schedule
 const formatAvailability = (doctor) => {
   if (doctor.availabilityLabel) {
     return doctor.availabilityLabel;
@@ -34,6 +40,7 @@ const formatAvailability = (doctor) => {
   return doctor.availability.map((entry) => `${entry.day} ${entry.startTime}-${entry.endTime}`).join(", ");
 };
 
+// Function to transform doctor data from server format to app format
 const mapDoctor = (doctor) => ({
   rawId: doctor._id,
   id: doctor.doctorCode || doctor._id,
@@ -49,6 +56,7 @@ const mapDoctor = (doctor) => ({
   roomNumber: doctor.roomNumber || "",
 });
 
+// Function to transform appointment data from server format to app format
 const mapAppointment = (appointment) => ({
   rawId: appointment._id,
   id: appointment.appointmentCode || appointment._id,
@@ -62,6 +70,7 @@ const mapAppointment = (appointment) => ({
   status: appointment.status
 });
 
+// Function to transform medical report data from server format to app format
 const mapReport = (report) => ({
   rawId: report._id,
   id: report.reportCode || report._id,
@@ -80,6 +89,7 @@ const mapReport = (report) => ({
   attachmentSize: report.attachmentSize || 0
 });
 
+// Function to transform patient data from server format to app format
 const mapPatient = (patient) => ({
   rawId: patient._id,
   id: patient.patientCode || patient._id,
@@ -91,6 +101,7 @@ const mapPatient = (patient) => ({
   address: patient.address
 });
 
+// Function to transform schedule data from server format to app format
 const mapSchedule = (schedule) => ({
   rawId: schedule._id,
   id: schedule.scheduleCode || schedule._id,
@@ -116,11 +127,13 @@ const EMPTY_STATE = {
   schedules: []
 };
 
+// The provider component that manages the app data state
 export function AppDataProvider({ children }) {
   const { apiBaseUrl, token, currentUser, isReady: isAuthReady } = useAuth();
   const [state, setState] = useState(EMPTY_STATE);
   const [isReady, setIsReady] = useState(false);
 
+  // Function to load all data from the server
   const refreshData = useCallback(async () => {
     if (!token) {
       setState(EMPTY_STATE);
@@ -179,6 +192,7 @@ export function AppDataProvider({ children }) {
     load();
   }, [isAuthReady, refreshData]);
 
+  // Function to create or update a doctor
   const upsertDoctor = async (doctor) => {
     const availability =
       Array.isArray(doctor.availabilityDays) &&
@@ -252,6 +266,7 @@ export function AppDataProvider({ children }) {
     });
   };
 
+  // Function to delete a doctor
   const deleteDoctor = async (doctorId) => {
     await moduleApi.deleteDoctor({
       baseUrl: apiBaseUrl,
@@ -265,6 +280,7 @@ export function AppDataProvider({ children }) {
     }));
   };
 
+  // Function to create or update a patient
   const upsertPatient = async (patient) => {
     const payload = {
       name: patient.name.trim(),

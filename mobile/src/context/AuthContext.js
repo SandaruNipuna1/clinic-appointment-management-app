@@ -1,15 +1,22 @@
+// This context manages user authentication state throughout the app.
+// It handles login, signup, logout, and profile management, and persists auth data locally.
+
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { authApi } from "../api/authApi";
 import { normalizeApiBaseUrl } from "../api/apiClient";
 
+// Key for storing authentication data in local storage
 const AUTH_STORAGE_KEY = "clinic_frontend_auth_v1";
 
 const AuthContext = createContext(null);
 
+// Default API base URL from environment variables
 const DEFAULT_API_BASE_URL = normalizeApiBaseUrl(process.env.EXPO_PUBLIC_API_BASE_URL || "");
 
+// AuthProvider component that wraps the app and provides authentication state
 export function AuthProvider({ children }) {
+  // Main authentication state
   const [authState, setAuthState] = useState({
     apiBaseUrl: DEFAULT_API_BASE_URL,
     token: "",
@@ -18,6 +25,7 @@ export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [isReady, setIsReady] = useState(false);
 
+  // Load saved authentication data when the app starts
   useEffect(() => {
     const loadAuth = async () => {
       try {
@@ -29,6 +37,7 @@ export function AuthProvider({ children }) {
 
           if (nextToken) {
             try {
+              // Verify the token is still valid by fetching user profile
               const profile = await authApi.getProfile({
                 baseUrl: nextBaseUrl,
                 token: nextToken
@@ -44,6 +53,7 @@ export function AuthProvider({ children }) {
               setCurrentUser(profile);
               await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(nextAuthState));
             } catch (error) {
+              // Token is invalid, remove stored data
               await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
             }
           } else {
@@ -63,12 +73,14 @@ export function AuthProvider({ children }) {
     loadAuth();
   }, []);
 
+  // Save authentication state to local storage
   const persistAuth = async (nextAuthState) => {
     setAuthState(nextAuthState);
     setCurrentUser(nextAuthState.currentUser);
     await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(nextAuthState));
   };
 
+  // Login function
   const login = async ({ email, password, apiBaseUrl }) => {
     const nextBaseUrl = normalizeApiBaseUrl(apiBaseUrl || authState.apiBaseUrl || DEFAULT_API_BASE_URL);
 
@@ -91,6 +103,7 @@ export function AuthProvider({ children }) {
     });
   };
 
+  // Signup function
   const signup = async ({ fullName, email, password, role, apiBaseUrl }) => {
     const nextBaseUrl = normalizeApiBaseUrl(apiBaseUrl || authState.apiBaseUrl || DEFAULT_API_BASE_URL);
 
@@ -115,6 +128,7 @@ export function AuthProvider({ children }) {
     });
   };
 
+  // Update user profile function
   const updateProfile = async (payload) => {
     if (!authState.token) {
       return;
@@ -133,6 +147,7 @@ export function AuthProvider({ children }) {
     });
   };
 
+  // Logout function
   const logout = async () => {
     const nextAuthState = {
       apiBaseUrl: authState.apiBaseUrl || DEFAULT_API_BASE_URL,
@@ -143,6 +158,7 @@ export function AuthProvider({ children }) {
     await persistAuth(nextAuthState);
   };
 
+  // Context value with all auth functions and state
   const value = useMemo(
     () => ({
       apiBaseUrl: authState.apiBaseUrl,
@@ -160,6 +176,7 @@ export function AuthProvider({ children }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
+// Hook to use authentication context
 export function useAuth() {
   const context = useContext(AuthContext);
 

@@ -1,3 +1,7 @@
+// This is a reusable component for displaying information in a card format.
+// It shows a title, a list of text lines, and can include additional content like buttons.
+// It's used to present details about appointments, patients, etc., in a nice-looking box.
+
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 

@@ -1,7 +1,12 @@
+// This controller manages doctor availability schedules.
+// It handles creating, reading, updating, and deleting schedule entries.
+// Schedules define when doctors are available for appointments.
+
 const Schedule = require("../models/Schedule");
 const asyncHandler = require("../utils/asyncHandler");
 const generateEntityCode = require("../utils/generateEntityCode");
 
+// Helper function to normalize available days into an array format
 const normalizeAvailableDays = (value) => {
   if (Array.isArray(value)) {
     return value.map((entry) => String(entry).trim()).filter(Boolean);
@@ -14,6 +19,7 @@ const normalizeAvailableDays = (value) => {
   return [];
 };
 
+// Get all active schedules, sorted by doctor name and start time
 const getAllSchedules = asyncHandler(async (req, res) => {
   const schedules = await Schedule.find({ isActive: true }).sort({
     doctorName: 1,
@@ -23,6 +29,7 @@ const getAllSchedules = asyncHandler(async (req, res) => {
   res.status(200).json(schedules);
 });
 
+// Get a specific schedule by its ID (only if active)
 const getScheduleById = asyncHandler(async (req, res) => {
   const schedule = await Schedule.findOne({ _id: req.params.id, isActive: true });
 
@@ -34,6 +41,7 @@ const getScheduleById = asyncHandler(async (req, res) => {
   res.status(200).json(schedule);
 });
 
+// Create a new schedule entry for a doctor
 const createSchedule = asyncHandler(async (req, res) => {
   const schedule = await Schedule.create({
     ...req.body,
@@ -47,6 +55,7 @@ const createSchedule = asyncHandler(async (req, res) => {
   res.status(201).json(schedule);
 });
 
+// Update an existing schedule entry
 const updateSchedule = asyncHandler(async (req, res) => {
   const schedule = await Schedule.findById(req.params.id);
 
@@ -55,6 +64,7 @@ const updateSchedule = asyncHandler(async (req, res) => {
     throw new Error("Schedule not found");
   }
 
+  // Update fields only if they are provided
   if (req.body.doctorName !== undefined) {
     schedule.doctorName = req.body.doctorName.trim();
   }
@@ -80,6 +90,7 @@ const updateSchedule = asyncHandler(async (req, res) => {
   res.status(200).json(updatedSchedule);
 });
 
+// Soft delete a schedule (mark as inactive)
 const deleteSchedule = asyncHandler(async (req, res) => {
   const schedule = await Schedule.findById(req.params.id);
 

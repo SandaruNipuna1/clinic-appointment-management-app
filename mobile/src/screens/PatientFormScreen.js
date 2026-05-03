@@ -1,3 +1,7 @@
+// This screen is used to add or edit patient records.
+// It includes fields for name, birth date, gender, phone, email, and address.
+// The form validates required patient information before saving.
+
 import React, { useMemo, useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
 

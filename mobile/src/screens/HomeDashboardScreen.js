@@ -1,3 +1,12 @@
+// This is the main dashboard screen that users see after logging in.
+// It shows a summary of the clinic data and provides access to different modules based on user role.
+//
+// Features:
+// - Welcome message with user role badge
+// - Summary cards showing counts of doctors, patients, appointments, etc.
+// - Navigation buttons to different modules (doctors, patients, appointments, reports, schedules)
+// - Profile and logout options
+
 import React from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -7,6 +16,7 @@ import ScreenContainer from "../components/ScreenContainer";
 import { useAppData } from "../context/AppDataContext";
 import { useAuth } from "../context/AuthContext";
 
+// Role configuration for badges and labels
 const ROLE_META = {
   patient: {
     label: "Patient",
@@ -27,6 +37,7 @@ export default function HomeDashboardScreen({ navigation }) {
   const { currentUser, logout } = useAuth();
   const roleMeta = ROLE_META[currentUser?.role] || ROLE_META.patient;
 
+  // Determine what modules the user can access based on their role
   const canViewDoctors = ["admin", "receptionist", "patient"].includes(currentUser?.role);
   const canManageDoctors = ["admin", "receptionist"].includes(currentUser?.role);
   const canManagePatients = ["admin", "receptionist"].includes(currentUser?.role);
@@ -34,6 +45,8 @@ export default function HomeDashboardScreen({ navigation }) {
   const canViewReports = ["admin", "receptionist", "patient"].includes(currentUser?.role);
   const canViewSchedules = ["admin", "receptionist", "patient"].includes(currentUser?.role);
   const canManageSchedules = ["admin", "receptionist"].includes(currentUser?.role);
+
+  // Create summary cards for the dashboard
   const summaryCards = [
     canManageDoctors ? { key: "doctors", value: doctors.length, label: "Doctors" } : null,
     canManagePatients ? { key: "patients", value: patients.length, label: "Patients" } : null,
@@ -44,6 +57,7 @@ export default function HomeDashboardScreen({ navigation }) {
 
   return (
     <ScreenContainer>
+      {/* Hero card with welcome and summary */}
       <View style={styles.heroCard}>
         <Text style={styles.eyebrow}>Clinic Management System</Text>
         <Text style={styles.title}>Simple clinic management app</Text>
@@ -63,6 +77,7 @@ export default function HomeDashboardScreen({ navigation }) {
           Signed in as {currentUser?.fullName}. Use the modules below that are available for your role.
         </Text>
 
+        {/* Profile and logout buttons */}
         <View style={styles.topActionRow}>
           <Pressable style={styles.topActionButton} onPress={() => navigation.navigate("Profile")}>
             <Text style={styles.topActionLabel}>View Profile</Text>
@@ -79,6 +94,8 @@ export default function HomeDashboardScreen({ navigation }) {
             <Text style={[styles.topActionLabel, styles.logoutLabel]}>Sign Out</Text>
           </Pressable>
         </View>
+
+        {/* Summary metrics */}
         <View style={styles.metricRow}>
           {summaryCards.map((card) => (
             <View key={card.key} style={styles.metricCard}>
@@ -89,6 +106,7 @@ export default function HomeDashboardScreen({ navigation }) {
         </View>
       </View>
 
+      {/* Doctor management module */}
       {canViewDoctors ? (
         <InfoCard
           title="Doctor Management"
@@ -103,6 +121,7 @@ export default function HomeDashboardScreen({ navigation }) {
         </InfoCard>
       ) : null}
 
+      {/* Patient management module */}
       {canManagePatients ? (
         <InfoCard
           title="Patient Management"
@@ -115,6 +134,7 @@ export default function HomeDashboardScreen({ navigation }) {
         </InfoCard>
       ) : null}
 
+      {/* Appointment management module */}
       {canManageAppointments ? (
         <InfoCard
           title="Appointment Management"
@@ -127,6 +147,7 @@ export default function HomeDashboardScreen({ navigation }) {
         </InfoCard>
       ) : null}
 
+      {/* Medical reports module */}
       {canViewReports ? (
         <InfoCard
           title="Medical Reports"
@@ -143,6 +164,7 @@ export default function HomeDashboardScreen({ navigation }) {
         </InfoCard>
       ) : null}
 
+      {/* Schedule management module */}
       {canViewSchedules ? (
         <InfoCard
           title="Schedule / Availability Management"
@@ -157,6 +179,7 @@ export default function HomeDashboardScreen({ navigation }) {
         </InfoCard>
       ) : null}
 
+      {/* Admin-only data reset button */}
       {currentUser?.role === "admin" ? <PrimaryButton title="Refresh Data" onPress={resetDemoData} variant="ghost" /> : null}
     </ScreenContainer>
   );

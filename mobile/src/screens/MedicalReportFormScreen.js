@@ -1,3 +1,7 @@
+// This screen allows users to create or update a medical report.
+// It includes fields for patient details, diagnosis, treatment, and report date.
+// The form checks input values before saving the report.
+
 import React, { useMemo, useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 

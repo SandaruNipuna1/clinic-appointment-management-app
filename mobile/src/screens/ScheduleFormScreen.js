@@ -1,3 +1,7 @@
+// This screen lets users create or edit doctor availability schedules.
+// It includes fields for doctor name, available days, start/end times, and status.
+// The schedule form validates entry before saving.
+
 import React, { useMemo, useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 

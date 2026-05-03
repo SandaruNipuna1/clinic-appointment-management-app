@@ -1,10 +1,16 @@
+// This file contains validation rules for medical report-related API requests.
+// It uses express-validator to check that incoming data meets the required format and constraints.
+
 const { body, param } = require("express-validator");
 const mongoose = require("mongoose");
 
+// Regular expression pattern for date format (YYYY-MM-DD)
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
+// Helper function to check if a string is a valid MongoDB ObjectId
 const isValidObjectId = (value) => mongoose.Types.ObjectId.isValid(value);
 
+// Validation for medical report ID parameter in URL
 const medicalReportIdParamValidation = [
   param("id").custom((value) => {
     if (!isValidObjectId(value)) {
@@ -14,6 +20,7 @@ const medicalReportIdParamValidation = [
   })
 ];
 
+// Validation rules for creating a new medical report
 const createMedicalReportValidation = [
   body("patientName").trim().notEmpty().withMessage("patientName is required"),
   body("doctorName").trim().notEmpty().withMessage("doctorName is required"),
@@ -38,6 +45,7 @@ const createMedicalReportValidation = [
     })
 ];
 
+// Validation rules for updating an existing medical report
 const updateMedicalReportValidation = [
   ...medicalReportIdParamValidation,
   body("patientName").optional().trim().notEmpty().withMessage("patientName cannot be empty"),

@@ -1,5 +1,11 @@
+// This file contains functions to communicate with the backend server for different parts of the app.
+// It helps the mobile app talk to the server to get, create, update, or delete information about appointments, medical reports, doctors, patients, and schedules.
+// It uses helper functions from apiClient to make the requests easier.
+
 import { apiRequest, normalizeApiBaseUrl } from "./apiClient";
 
+// This function is used to upload files (like attachments) to the server.
+// It prepares the file data and sends it with authentication if needed.
 const uploadRequest = async ({ baseUrl, token, endpoint, file }) => {
   const normalizedBaseUrl = normalizeApiBaseUrl(baseUrl);
   const formData = new FormData();
@@ -29,7 +35,10 @@ const uploadRequest = async ({ baseUrl, token, endpoint, file }) => {
   return data;
 };
 
+// This object contains all the API functions for different modules in the app.
+// Each function calls the backend to perform actions like fetching lists or saving new data.
 export const moduleApi = {
+  // Functions for managing appointments
   getAppointments: ({ baseUrl, token }) =>
     apiRequest({
       baseUrl,
@@ -70,6 +79,7 @@ export const moduleApi = {
       method: "DELETE"
     }),
 
+  // Functions for managing medical reports
   getMedicalReports: ({ baseUrl, token }) =>
     apiRequest({
       baseUrl,
@@ -118,6 +128,7 @@ export const moduleApi = {
       method: "DELETE"
     }),
 
+  // Functions for managing doctors
   getDoctors: ({ baseUrl, token }) =>
     apiRequest({
       baseUrl,
@@ -151,6 +162,7 @@ export const moduleApi = {
       method: "DELETE"
     }),
 
+  // Functions for managing patients
   getPatients: ({ baseUrl, token }) =>
     apiRequest({
       baseUrl,
@@ -184,6 +196,7 @@ export const moduleApi = {
       method: "DELETE"
     }),
 
+  // Functions for managing schedules
   getSchedules: ({ baseUrl, token }) =>
     apiRequest({
       baseUrl,

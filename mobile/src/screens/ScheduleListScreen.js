@@ -1,3 +1,7 @@
+// This screen shows the list of doctor schedules.
+// It supports filtering schedules by doctor name and day of the week.
+// Admin and receptionist users can delete schedules from this screen.
+
 import React, { useMemo, useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
 
