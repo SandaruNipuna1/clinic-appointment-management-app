@@ -3,9 +3,7 @@ const API_ROUTE_SEGMENT = "api";
 export function normalizeApiBaseUrl(baseUrl) {
   const trimmedBaseUrl = baseUrl?.trim();
 
-  if (!trimmedBaseUrl) {
-    return "";
-  }
+ 
 
   const withoutTrailingSlash = trimmedBaseUrl.replace(/\/+$/, "");
 
