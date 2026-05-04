@@ -9,7 +9,7 @@ const {
   createSchedule,
   updateSchedule,
   deleteSchedule
-} = require("../controllers/scheduleController");
+} =  require("../controllers/scheduleController");
 const { protect, adminOrReceptionist } = require("../middleware/authMiddleware");
 const validateRequest = require("../middleware/validateRequest");
 const {

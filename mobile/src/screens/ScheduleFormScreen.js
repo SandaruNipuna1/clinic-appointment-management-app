@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
     color: "#4b6972",
     marginBottom: 10
   },
-  filterWrap: {
+  filterWrap:  {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 10,

@@ -14,7 +14,7 @@ const scheduleSchema = new mongoose.Schema(
       sparse: true
     },
     // Doctor this schedule belongs to
-    doctorId: {
+    doctorId:  {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Doctor",
       default: null,

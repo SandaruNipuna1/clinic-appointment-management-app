@@ -8,7 +8,7 @@ const mongoose = require("mongoose");
 const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
 // Helper function to check if a string is a valid MongoDB ObjectId
-const isValidObjectId = (value) => mongoose.Types.ObjectId.isValid(value);
+const  isValidObjectId = (value) => mongoose.Types.ObjectId.isValid(value);
 
 // Helper function to validate time format for any field
 const validateTime = (fieldName) =>
